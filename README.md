@@ -29,7 +29,7 @@ const newRoute = require('./<file you created on 1st step>');
 router.use('/<new endpoint>', newRoute);
 ```
 
-This route will be available on /api/newRoute
+This route will be available on http://localhost:3000/api/newRoute
 
 #### Run project
 ```
