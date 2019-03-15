@@ -8,8 +8,7 @@ module.exports = {
         return User.findOne({ where: { email: req.body.email }})
             .then(userInfo => {
                 if(userInfo) {
-                    // if(bcrypt.compareSync(req.body.password, userInfo.password)) {
-                    if(req.body.password, userInfo.password) {
+                    if (userInfo.validPassword(req.body.password)) {
                         const token = jwt.sign({ id: userInfo.id}, config.auth.secretKey, { expiresIn: '1h' });
                         res.json({ status:"success", message: "user found!!!", data: { user: userInfo, token: token }});
                     }else{
