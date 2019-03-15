@@ -13,4 +13,6 @@ app.get('/', (req, res) => {
 
 app.use('/api', router);
 
-app.listen(3000);
+app.listen(3000, () => {
+    console.log('Node server listening on port 3000');
+});
