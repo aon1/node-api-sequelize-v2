@@ -3,12 +3,14 @@ const bodyParser = require('body-parser');
 
 const app = express();
 
-const { User } = require('./app/models');
+const router = require('./app/router/');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.get('/', (req, res) => {
   res.send('Hello World!');
 });
+
+app.use('/api', router);
 
 app.listen(3000);

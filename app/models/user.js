@@ -3,6 +3,9 @@ module.exports = (sequelize, DataTypes) => {
     name: DataTypes.STRING,
     email: DataTypes.STRING,
     password: DataTypes.STRING,
+  }, {
+  	freezeTableName: true,
+  	tableName: 'user'
   });
 
   return User;
