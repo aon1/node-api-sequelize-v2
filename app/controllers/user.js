@@ -15,8 +15,6 @@ module.exports = {
 	create(req, res) {
 		const data = req.body;
 
-		console.log("aqui")
-
         return User
             .create(data)
             .then(user => {
@@ -31,6 +29,8 @@ module.exports = {
 	update(req, res) {
 		const data = req.body;
         const userId = req.params.userId;
+
+        console.log(data)
 
         return User
             .update(data, { where: { id: userId }})

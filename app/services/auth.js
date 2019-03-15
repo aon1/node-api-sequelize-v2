@@ -8,7 +8,7 @@ module.exports = {
                 res.json({ status:"error", message: err.message, data:null });
             }else{
                 // add user id to request
-                req.body.userId = decoded.id;
+                // req.body.userId = decoded.id;
                 next();
             }
         });

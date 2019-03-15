@@ -1,12 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const UserController = require('../controllers/user')
+const expressJoi = require('express-joi-validator');
+
+const userController = require('../controllers/user')
+const userValidator = require('../validators/user')
 
 //create user
-router.post('/', UserController.create);
+router.post('/', expressJoi(userValidator.create), userController.create);
 
-router.get('/', UserController.index);
-router.put('/:userId', UserController.update);
-router.delete('/:userId', UserController.delete);
+router.get('/', userController.index);
+router.put('/:userId', expressJoi(userValidator.update), userController.update);
+// router.put('/:userId', userController.update);
+router.delete('/:userId', expressJoi(userValidator.delete), userController.delete);
 
 module.exports = router;
