@@ -7,9 +7,9 @@ skeleton api with sequelize
 
 #### Creating new models
 
- - create model file on app/models/<model name>.js
- - create router file on app/router/<model name>.js
- - create controller file on app/controllers/<model name>.js
+ - create model file on app/models
+ - create router file on app/router
+ - create controller file on app/controllers
  
 ``` 
 node_modules/.bin/sequelize migration:create --name=create-<model name>
@@ -20,6 +20,16 @@ Edit created migration file on database/migrations
 ```
 node_modules/.bin/sequelize db:migrate
 ```
+
+On app/router/index.js, add the following lines to include the new route
+
+```
+const newRoute = require('./<file you created on 1st step>');
+
+router.use('/<new endpoint>', newRoute);
+```
+
+This route will be available on /api/newRoute
 
 #### Run project
 ```
