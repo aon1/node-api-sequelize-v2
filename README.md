@@ -11,14 +11,12 @@ skeleton api with sequelize
  - create router file on app/router/<model name>.js
  - create controller file on app/controllers/<model name>.js
  
-#### Run
 ``` 
 node_modules/.bin/sequelize migration:create --name=create-<model name>
 ```
 
-#### Edit created migration file on database/migrations
+Edit created migration file on database/migrations
 
-#### Run
 ```
 node_modules/.bin/sequelize db:migrate
 ```
