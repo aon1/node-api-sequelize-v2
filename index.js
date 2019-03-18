@@ -14,10 +14,10 @@ app.get('/', (req, res) => {
 app.use('/api', router);
 
 app.use(function (err, req, res, next) {
-	if (err.isBoom) {
-		console.log(req.body)
-		return res.status(err.output.statusCode).json(err.output.payload);
-	}
+  if (err.isBoom) {
+    console.log(req.body)
+    return res.status(err.output.statusCode).json(err.output.payload);
+  }
 });
 
 app.listen(3000, () => {

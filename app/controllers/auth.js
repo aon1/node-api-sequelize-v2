@@ -4,7 +4,7 @@ const config = require('../../config/config');
 const { User } = require('../models');
 
 module.exports = {
-	login(req, res, next) {
+  login(req, res, next) {
         return User.findOne({ where: { email: req.body.email }})
             .then(userInfo => {
                 if(userInfo) {

@@ -1,19 +1,19 @@
 const { Brand } = require('../models');
 
 module.exports = {
-	index(req, res) {
-		return Brand
-			.findAll()
-			.then(brands => {
-				res.status(200).json(brands)
-			})
-			.catch(error => {
-				res.status(500).json({ status: 500, message: 'Error on getting brands' });
-			})
-	},
+  index(req, res) {
+    return Brand
+      .findAll()
+      .then(brands => {
+        res.status(200).json(brands)
+      })
+      .catch(error => {
+        res.status(500).json({ status: 500, message: 'Error on getting brands' });
+      })
+  },
 
-	create(req, res) {
-		const data = req.body;
+  create(req, res) {
+    const data = req.body;
 
         return Brand
             .create(data)
@@ -24,10 +24,10 @@ module.exports = {
                 console.error('Error on creating client', error);
                 res.status(500).json({ message: 'Error on creating brand'});
             });
-	},
+  },
 
-	update(req, res) {
-		const data = req.body;
+  update(req, res) {
+    const data = req.body;
         const brandId = req.params.brandId;
 
         return Brand
@@ -39,10 +39,10 @@ module.exports = {
                 console.error('Error on updating Brand', error);
                 res.status(500).json({ status: 500, message: 'Error on updating Brand' });
             });
-	},
+  },
 
-	delete(req, res) {
-		const brandId = req.params.brandId;
+  delete(req, res) {
+    const brandId = req.params.brandId;
         
         return Brand
             .destroy({ where: { id: brandId }})
@@ -59,5 +59,5 @@ module.exports = {
                 console.error('Error on deleting Brand', error);
                 res.status(500).json({ status: 500, message: 'Error on deleting Brand' });
             });
-	}
+  }
 }

@@ -6,7 +6,7 @@ module.exports = (sequelize, DataTypes) => {
     email: DataTypes.STRING,
     password: DataTypes.STRING,
   }, {
-  	hooks: {
+    hooks: {
       beforeCreate: (user) => {
         user.password = user.hashPassword(user.password)
       },
@@ -14,8 +14,8 @@ module.exports = (sequelize, DataTypes) => {
         user.password = user.hashPassword(user.password)
       }
     },
-  	freezeTableName: true,
-  	tableName: 'user'
+    freezeTableName: true,
+    tableName: 'user'
   });
 
   User.prototype.validPassword = function(password) {
