@@ -36,9 +36,9 @@ const foo = require('./foo');
 router.use('/foo', foo);
 ```
 
-This route will be available on http://localhost:3000/api/foo
-
 #### Run project
 ```
 npm start
 ```
+
+Route will be available on http://localhost:3000/api/foo
