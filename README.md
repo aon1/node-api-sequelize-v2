@@ -1,6 +1,6 @@
 # node-api-sequelize
 
-skeleton api with sequelize
+boilerplate api with sequelize
 
 ### Installation
     npm install
