@@ -5,7 +5,7 @@ const expressJoi = require("express-joi-validator");
 const userController = require("../controllers/user");
 const userValidator = require("../validators/user");
 
-//create user
+// create user
 router.post("/", expressJoi(userValidator.create), userController.create);
 
 router.get("/", userController.index);

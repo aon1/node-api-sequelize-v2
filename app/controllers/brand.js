@@ -7,9 +7,7 @@ module.exports = {
         res.status(200).json(brands);
       })
       .catch(error => {
-        res
-          .status(500)
-          .json({ status: 500, message: "Error on getting brands" });
+        res.status(500).json({ status: 500, message: error });
       });
   },
 
@@ -61,7 +59,7 @@ module.exports = {
             .json({ status: 200, message: "Brand deleted" });
         } else {
           return Promise.reject(
-            "Unexpected error. Wront ammount deletion of Brand"
+            new Error("Unexpected error. Wront ammount deletion of Brand")
           );
         }
       })

@@ -7,9 +7,7 @@ module.exports = {
         res.status(200).json(users);
       })
       .catch(error => {
-        res
-          .status(500)
-          .json({ status: 500, message: "Error on getting users" });
+        res.status(500).json({ status: 500, message: error });
       });
   },
 
@@ -59,7 +57,7 @@ module.exports = {
           return res.status(200).json({ status: 200, message: "User deleted" });
         } else {
           return Promise.reject(
-            "Unexpected error. Wront ammount deletion of User"
+            new Error("Unexpected error. Wront ammount deletion of User")
           );
         }
       })
