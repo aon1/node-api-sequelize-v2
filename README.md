@@ -7,6 +7,8 @@ boilerplate api with sequelize (mysql), jsonwebtoken and joi validation
 
 ### Steps to create an endpoint
 
+#### Configure database connect on config/database.js
+
 #### Create a file with the name of your new endpoint on the following folders
 
  - create model file on app/models/foo

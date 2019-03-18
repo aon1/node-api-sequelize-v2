@@ -1,5 +1,5 @@
 module.exports = {
-    auth: {
-        secretKey: 'nodeRestApi'
-    }
+  auth: {
+    secretKey: 'nodeRestApi'
+  }
 }
