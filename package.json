@@ -5,11 +5,12 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "./node_modules/.bin/eslint --fix app/**/*.js"
   },
   "husky": {
     "hooks": {
-      "pre-commit": "pretty-quick --staged --tab-width 2 --single-quote"
+      "pre-commit": "npm run lint && pretty-quick --staged --tab-width 2 --single-quote"
     }
   },
   "keywords": [],
