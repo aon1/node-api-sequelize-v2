@@ -1,35 +1,42 @@
 # node-api-sequelize
 
-boilerplate api with sequelize
+boilerplate api with sequelize (mysql), jsonwebtoken and joi validation
 
 ### Installation
     npm install
 
-#### Creating new models
+### Steps to create an endpoint
 
- - create model file on app/models
- - create router file on app/router
- - create controller file on app/controllers
+#### Create a file with the name of your new endpoint on the following folders
+
+ - create model file on app/models/foo
+ - create router file on app/router/foo
+ - create controller file on app/controllers/foo
+ - create validation file on app/validators/foo
+
+#### Generate migration file(s)
  
 ``` 
 node_modules/.bin/sequelize migration:create --name=create-<model name>
 ```
 
-Edit created migration file on database/migrations
+#### Edit migration file on database/migrations
+
+#### Run migrate command to create table(s)
 
 ```
 node_modules/.bin/sequelize db:migrate
 ```
 
-On app/router/index.js, add the following lines to include the new route
+#### On app/router/index.js, add the following lines to include the new route
 
 ```
-const newRoute = require('./<file you created on 1st step>');
+const foo = require('./foo');
 
-router.use('/<new endpoint>', newRoute);
+router.use('/foo', foo);
 ```
 
-This route will be available on http://localhost:3000/api/newRoute
+This route will be available on http://localhost:3000/api/foo
 
 #### Run project
 ```
