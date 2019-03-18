@@ -30,10 +30,8 @@ module.exports = {
 		const data = req.body;
         const userId = req.params.userId;
 
-        console.log(data)
-
         return User
-            .update(data, { where: { id: userId }})
+            .update(data, { where: { id: userId }, individualHooks: true })
             .then(result => {
                 res.status(200).json({ status: 200, message: 'User updated' });
             })
