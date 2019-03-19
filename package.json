@@ -9,7 +9,11 @@
     "lint": "./node_modules/.bin/eslint --fix app/**/*.js",
     "migrate": "./node_modules/.bin/sequelize db:migrate"
   },
-  
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run lint && pretty-quick --staged --tab-width 2 --single-quote"
+    }
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
