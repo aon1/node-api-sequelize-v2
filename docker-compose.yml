@@ -1,0 +1,40 @@
+version: "2"
+
+services:
+  node-api-sequelize:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: "development"
+    volumes:
+      - .:/app
+    ports:
+      - "3000:3000"
+    links:
+      - mysql
+    depends_on:
+      - mysql
+    networks:
+      - default
+      - logapi_default
+  mysql:
+    image: mysql:latest
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - "mysqldata:/data/mysqldb"
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: "crud_sequelize"
+      MYSQL_USER: "root"
+      MYSQL_PASSWORD: "root"
+      MYSQL_ROOT_PASSWORD: "root"
+      MYSQL_ROOT_HOST: "mysql"
+
+volumes:
+  mysqldata:
+
+networks:
+  logapi_default:
+    external: true

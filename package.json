@@ -4,24 +4,20 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "nodemon node index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "./node_modules/.bin/eslint --fix app/**/*.js"
+    "lint": "./node_modules/.bin/eslint --fix app/**/*.js",
+    "migrate": "./node_modules/.bin/sequelize db:migrate"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "npm run lint && pretty-quick --staged --tab-width 2 --single-quote"
-    }
-  },
+  
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "bcrypt": "^3.0.4",
+    "bcryptjs": "^2.4.3",
     "body-parser": "^1.18.3",
     "express": "^4.16.4",
-    "express-joi-validator": "^2.0.1",
-    "express-validator": "^5.3.1",
+    "express-validation": "^1.0.2",
     "joi": "^14.3.1",
     "jsonwebtoken": "^8.5.0",
     "mysql2": "^1.6.5",
@@ -36,6 +32,7 @@
     "eslint-plugin-promise": "^4.0.1",
     "eslint-plugin-standard": "^4.0.0",
     "husky": "^1.3.1",
+    "nodemon": "^1.18.10",
     "prettier": "1.16.4",
     "pretty-quick": "^1.10.0",
     "sequelize-cli": "^5.4.0"

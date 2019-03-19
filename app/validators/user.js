@@ -1,4 +1,4 @@
-const Joi = require("joi");
+const Joi = require('joi')
 
 module.exports = {
   index: {},
@@ -37,4 +37,4 @@ module.exports = {
         .required()
     }
   }
-};
+}
