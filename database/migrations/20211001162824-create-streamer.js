@@ -10,13 +10,17 @@ module.exports = {
       },
       externalId: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: false,
+        unique: true
       },
       login: {
         type: Sequelize.STRING
       },
       email: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        validate: {
+          isEmail: true
+        }
       },
       name: {
         type: Sequelize.STRING
@@ -30,10 +34,12 @@ module.exports = {
       },
       createdAt: {
         type: Sequelize.DATE,
+        defaultValue: Sequelize.fn('NOW'),
         allowNull: false
       },
       updatedAt: {
         type: Sequelize.DATE,
+        defaultValue: Sequelize.fn('NOW'),
         allowNull: false
       }
     })
