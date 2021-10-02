@@ -1,4 +1,4 @@
-const { Streamer } = require('../models')
+const { Streamer, Follower, Stream, Game } = require('../models')
 
 module.exports = {
   index (req, res) {
@@ -15,6 +15,43 @@ module.exports = {
     const id = req.params.id
 
     return Streamer.findByPk(id)
+      .then(streamer => {
+        res.status(200).json(streamer)
+      })
+      .catch(error => {
+        res.status(500).json({ status: 500, message: error })
+      })
+  },
+
+  fetchFollowers (req, res) {
+    const id = req.params.id
+
+    return Follower.findOne({
+      attributes: [ 'count' ],
+      where: {
+        streamerId: id
+      },
+      order: [ [ 'createdAt', 'DESC' ] ]
+    })
+      .then(streamer => {
+        res.status(200).json(streamer)
+      })
+      .catch(error => {
+        res.status(500).json({ status: 500, message: error })
+      })
+  },
+
+  lastStream (req, res) {
+    const id = req.params.id
+
+    return Stream.findOne({
+      attributes: { exclude: [ 'streamerId', 'gameId', 'StreamerId', 'GameId' ] },
+      where: {
+        streamerId: id
+      },
+      include: [ { model: Game, attributes: { exclude: [ 'createdAt', 'updatedAt' ] } } ],
+      order: [ [ 'startedAt', 'DESC' ] ]
+    })
       .then(streamer => {
         res.status(200).json(streamer)
       })

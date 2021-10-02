@@ -5,6 +5,8 @@ const controller = require('../controllers/streamer')
 
 router.get('/', controller.index)
 router.get('/:id', controller.findById)
+router.get('/:id/followers', controller.fetchFollowers)
+router.get('/:id/last-stream', controller.lastStream)
 router.post('/', controller.create)
 router.put('/:id', controller.update)
 router.delete('/:id', controller.delete)

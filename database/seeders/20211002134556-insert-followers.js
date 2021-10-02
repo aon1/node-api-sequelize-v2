@@ -6,6 +6,10 @@ module.exports = {
       {
         streamerId: 1,
         count: 10
+      },
+      {
+        streamerId: 2,
+        count: 12
       }
     ], {})
   },
