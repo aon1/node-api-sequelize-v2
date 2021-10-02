@@ -1,4 +1,4 @@
-const { Streamer, Follower, Stream, Game } = require('../models')
+const { Streamer, Follower, Stream, Game, Viewer } = require('../models')
 
 module.exports = {
   index (req, res) {
@@ -41,7 +41,7 @@ module.exports = {
       })
   },
 
-  lastStream (req, res) {
+  fetchLastStream (req, res) {
     const id = req.params.id
 
     return Stream.findOne({
@@ -58,6 +58,34 @@ module.exports = {
       .catch(error => {
         res.status(500).json({ status: 500, message: error })
       })
+  },
+
+  async fetchAverageViewers (req, res) {
+    const id = req.params.id
+    const period = req.params.period
+
+    const streams = await Stream.findAll({
+      where: {
+        streamerId: id
+      }
+    })
+
+    console.log(streams)
+
+    // return Stream.findOne({
+    //   attributes: { exclude: ['streamerId', 'gameId', 'StreamerId', 'GameId'] },
+    //   where: {
+    //     streamerId: id
+    //   },
+    //   include: [{ model: Game, attributes: { exclude: ['createdAt', 'updatedAt'] } }],
+    //   order: [['startedAt', 'DESC']]
+    // })
+    //   .then(streamer => {
+    //     res.status(200).json(streamer)
+    //   })
+    //   .catch(error => {
+    //     res.status(500).json({ status: 500, message: error })
+    //   })
   },
 
   create (req, res) {
