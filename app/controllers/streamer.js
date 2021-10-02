@@ -1,8 +1,9 @@
-const { User } = require('../models')
+const { Streamer } = require('../models')
 
 module.exports = {
   index (req, res) {
-    return User.findAll()
+    console.log(Streamer.findAll())
+    return Streamer.findAll()
       .then(users => {
         res.status(200).json(users)
       })
@@ -14,12 +15,12 @@ module.exports = {
   create (req, res) {
     const data = req.body
 
-    return User.create(data)
-      .then(user => {
+    return Streamer.create(data)
+      .then(streamer => {
         res.status(200).json({
           status: 200,
-          message: 'Client created',
-          data: { user: user.id }
+          message: 'Streamer created',
+          data: { streamer: streamer.id }
         })
       })
       .catch(error => {
@@ -32,7 +33,7 @@ module.exports = {
     const data = req.body
     const userId = req.params.userId
 
-    return User.update(data, { where: { id: userId }, individualHooks: true })
+    return Streamer.update(data, { where: { id: userId }, individualHooks: true })
       .then(result => {
         res.status(200).json({ status: 200, message: 'User updated' })
       })
@@ -47,7 +48,7 @@ module.exports = {
   delete (req, res) {
     const userId = req.params.userId
 
-    return User.destroy({ where: { id: userId } })
+    return Streamer.destroy({ where: { id: userId } })
       .then(affectedRows => {
         if (affectedRows === 0) {
           return res
