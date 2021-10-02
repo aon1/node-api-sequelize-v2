@@ -11,13 +11,9 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate (models) {
       // define association here
-      models.Follower.belongsTo(models.Streamer, {
-        foreignKey: {
-          allowNull: false
-        }
-      })
+      models.Follower.belongsTo(models.Streamer)
     }
-  };
+  }
   Follower.init({
     streamerId: {
       type: DataTypes.INTEGER,
@@ -30,11 +26,11 @@ module.exports = (sequelize, DataTypes) => {
     count: {
       type: DataTypes.INTEGER,
       allowNull: false
-    },
-    updatedAt: false
+    }
   }, {
     sequelize,
-    modelName: 'Follower'
+    modelName: 'Follower',
+    timestamps: false
   })
   return Follower
 }

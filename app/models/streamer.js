@@ -12,7 +12,6 @@ module.exports = (sequelize, DataTypes) => {
     static associate (models) {
       // define association here
       models.Streamer.hasMany(models.Stream)
-      models.Streamer.hasMany(models.Game)
     }
   }
   Streamer.init({

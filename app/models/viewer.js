@@ -34,7 +34,8 @@ module.exports = (sequelize, DataTypes) => {
     updatedAt: false
   }, {
     sequelize,
-    modelName: 'Viewer'
+    modelName: 'Viewer',
+    timestamps: false
   })
   return Viewer
 }

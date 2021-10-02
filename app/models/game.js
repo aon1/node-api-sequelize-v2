@@ -18,7 +18,9 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false
     },
-    boxArtUrl: DataTypes.STRING
+    boxArtUrl: {
+      type: DataTypes.STRING
+    }
   }, {
     sequelize,
     modelName: 'Game'

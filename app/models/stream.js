@@ -11,16 +11,20 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate (models) {
       // define association here
-      models.Stream.belongsTo(models.Streamer, {
-        foreignKey: {
-          allowNull: false
-        }
-      })
-      models.Stream.belongsTo(models.Game, {
-        foreignKey: {
-          allowNull: false
-        }
-      })
+      models.Stream.belongsTo(models.Streamer)
+      //   , {
+      //   as: 'Streamer'
+      //   // foreignKey: {
+      //   //   allowNull: false
+      //   // }
+      // })
+      models.Stream.belongsTo(models.Game)
+      //   {
+      //   as: 'Game'
+      //   // foreignKey: {
+      //   //   allowNull: false
+      //   // }
+      // })
     }
   }
   Stream.init({
@@ -42,6 +46,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     startedAt: {
       type: DataTypes.DATE,
+      defaultValue: new Date(),
       allowNull: false
     },
     finishedAt: {
@@ -49,12 +54,11 @@ module.exports = (sequelize, DataTypes) => {
     },
     hourCount: {
       type: DataTypes.DATE
-    },
-    createdAt: false,
-    updatedAt: false
+    }
   }, {
     sequelize,
-    modelName: 'Stream'
+    modelName: 'Stream',
+    timestamps: false
   })
   return Stream
 }
