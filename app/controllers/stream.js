@@ -46,25 +46,6 @@ module.exports = {
       })
   },
 
-  findLastStreamByStreamer (req, res) {
-    const streamerId = req.params.streamerId
-
-    return Stream.findOne({
-      attributes: [ 'startedAt', 'finishedAt', 'hourCount' ],
-      where: {
-        streamerId: streamerId
-      },
-      include: [ { model: Game, attributes: [ 'name' ] } ],
-      order: [ [ 'finishedAt', 'DESC' ] ]
-    })
-      .then(stream => {
-        res.status(200).json(stream)
-      })
-      .catch(error => {
-        res.status(500).json({ status: 500, message: error })
-      })
-  },
-
   async create (req, res) {
     const data = req.body
 

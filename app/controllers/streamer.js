@@ -1,5 +1,6 @@
 const { Streamer, Follower, Stream, Game, Viewer } = require('../models')
 const sequelize = require('sequelize')
+const { Op } = require('sequelize')
 
 module.exports = {
   index (req, res) {
@@ -133,6 +134,30 @@ module.exports = {
     })
       .then(averageViewers => {
         res.status(200).json(averageViewers)
+      })
+      .catch(error => {
+        res.status(500).json({ status: 500, message: error })
+      })
+  },
+
+  fetchGamesStreamed (req, res) {
+    const id = req.params.id
+
+    return Stream.findAll({
+      attributes: [
+        [ sequelize.fn('SUM', sequelize.col('hourCount')), 'total' ]
+      ],
+      group: [ 'gameId' ],
+      where: {
+        streamerId: id,
+        finishedAt: {
+          [Op.not]: null
+        }
+      },
+      include: [ { model: Game, attributes: { exclude: [ 'createdAt', 'updatedAt' ] } } ]
+    })
+      .then(streamer => {
+        res.status(200).json(streamer)
       })
       .catch(error => {
         res.status(500).json({ status: 500, message: error })
