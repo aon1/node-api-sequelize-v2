@@ -5,7 +5,24 @@ module.exports = {
     await queryInterface.bulkInsert('streams', [
       {
         streamerId: 1,
-        gameId: 1
+        gameId: 1,
+        startedAt: '2021-10-02 13:29:30',
+        finishedAt: '2021-10-02 16:29:30',
+        hourCount: 3
+      },
+      {
+        streamerId: 1,
+        gameId: 1,
+        startedAt: '2021-10-02 13:38:30',
+        finishedAt: '2021-10-02 19:38:30',
+        hourCount: 6
+      },
+      {
+        streamerId: 1,
+        gameId: 2,
+        startedAt: '2021-10-02 09:29:30',
+        finishedAt: '2021-10-02 16:29:30',
+        hourCount: 8
       }
     ], {})
   },

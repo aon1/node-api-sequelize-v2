@@ -33,7 +33,7 @@ module.exports = {
         type: Sequelize.DATE
       },
       hourCount: {
-        type: Sequelize.DATE
+        type: Sequelize.FLOAT
       }
     })
   },
