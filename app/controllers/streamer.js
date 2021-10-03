@@ -1,4 +1,5 @@
 const { Streamer, Follower, Stream, Game, Viewer } = require('../models')
+const sequelize = require('sequelize')
 
 module.exports = {
   index (req, res) {
@@ -60,32 +61,82 @@ module.exports = {
       })
   },
 
-  async fetchAverageViewers (req, res) {
+  fetchAverageViewers (req, res) {
     const id = req.params.id
     const period = req.params.period
 
-    const streams = await Stream.findAll({
-      where: {
-        streamerId: id
+    let dateFormat = ''
+    if (period === 'minute') {
+      dateFormat = '%Y-%m-%d %H:%m'
+    } else if (period === 'hour') {
+      dateFormat = '%Y-%m-%d %H'
+    } else if (period === 'day') {
+      dateFormat = '%Y-%m-%d'
+    } else if (period === 'month') {
+      dateFormat = '%Y-%m'
+    }
+
+    return Viewer.findAll({
+      attributes: [
+        [ sequelize.fn('AVG', sequelize.col('count')), 'average' ],
+        [ sequelize.fn('date_format', sequelize.col('createdAt'), dateFormat), 'date' ]
+      ],
+      group: [ [sequelize.fn('date_format', sequelize.col('createdAt'), dateFormat), 'date'] ],
+      include: {
+        model: Stream,
+        attributes: {
+          include: []
+        },
+        where: {
+          streamerId: id
+        }
       }
     })
+      .then(averageViewers => {
+        res.status(200).json(averageViewers)
+      })
+      .catch(error => {
+        res.status(500).json({ status: 500, message: error })
+      })
+  },
 
-    console.log(streams)
+  fetchAverageFollowers (req, res) {
+    const id = req.params.id
+    const period = req.params.period
 
-    // return Stream.findOne({
-    //   attributes: { exclude: ['streamerId', 'gameId', 'StreamerId', 'GameId'] },
-    //   where: {
-    //     streamerId: id
-    //   },
-    //   include: [{ model: Game, attributes: { exclude: ['createdAt', 'updatedAt'] } }],
-    //   order: [['startedAt', 'DESC']]
-    // })
-    //   .then(streamer => {
-    //     res.status(200).json(streamer)
-    //   })
-    //   .catch(error => {
-    //     res.status(500).json({ status: 500, message: error })
-    //   })
+    let dateFormat = ''
+    if (period === 'minute') {
+      dateFormat = '%Y-%m-%d %H:%m'
+    } else if (period === 'hour') {
+      dateFormat = '%Y-%m-%d %H'
+    } else if (period === 'day') {
+      dateFormat = '%Y-%m-%d'
+    } else if (period === 'month') {
+      dateFormat = '%Y-%m'
+    }
+
+    return Follower.findAll({
+      attributes: [
+        [ sequelize.fn('AVG', sequelize.col('count')), 'average' ],
+        [ sequelize.fn('date_format', sequelize.col('Follower.createdAt'), dateFormat), 'date' ]
+      ],
+      group: [ [sequelize.fn('date_format', sequelize.col('Follower.createdAt'), dateFormat), 'date'] ],
+      include: {
+        model: Streamer,
+        attributes: {
+          exclude: [ ]
+        },
+        where: {
+          id: id
+        }
+      }
+    })
+      .then(averageViewers => {
+        res.status(200).json(averageViewers)
+      })
+      .catch(error => {
+        res.status(500).json({ status: 500, message: error })
+      })
   },
 
   create (req, res) {
