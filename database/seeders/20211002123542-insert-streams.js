@@ -23,6 +23,20 @@ module.exports = {
         startedAt: '2021-10-02 09:29:30',
         finishedAt: '2021-10-02 16:29:30',
         duration: 8
+      },
+      {
+        streamerId: 1,
+        gameId: 2,
+        startedAt: '2021-09-01 09:29:30',
+        finishedAt: '2021-09-01 16:29:30',
+        duration: 8
+      },
+      {
+        streamerId: 1,
+        gameId: 2,
+        startedAt: '2021-08-02 09:29:30',
+        finishedAt: '2021-08-02 16:29:30',
+        duration: 8
       }
     ], {})
   },

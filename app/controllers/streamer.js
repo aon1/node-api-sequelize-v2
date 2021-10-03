@@ -256,6 +256,7 @@ module.exports = {
         streamerId: id
       },
       group: [ 'Stream.id' ],
+      order: [ [ 'startedAt', 'DESC' ] ],
       include: [
         { model: Game, attributes: { exclude: [ 'createdAt', 'updatedAt' ] } },
         { model: Viewer, attributes: { exclude: [ 'createdAt', 'updatedAt' ] } },
@@ -264,6 +265,41 @@ module.exports = {
     })
       .then(averageViewers => {
         res.status(200).json(averageViewers)
+      })
+      .catch(error => {
+        res.status(500).json({ status: 500, message: error })
+      })
+  },
+
+  fetchStreamsByDateRange (req, res) {
+    const id = req.params.id
+    const startedAt = req.params.startDate
+    const finishedAt = req.params.endDate
+
+    const dateFormat = '%Y-%m-%d'
+
+    return Stream.findAll({
+      attributes: [
+        [sequelize.fn('date_format', sequelize.col('startedAt'), dateFormat), 'date'],
+        [sequelize.fn('COUNT', sequelize.col('*')), 'count']
+      ],
+      where: {
+        streamerId: id,
+        [Op.or]: [{
+          startedAt: {
+            [Op.between]: [startedAt, finishedAt]
+          }
+        }, {
+          finishedAt: {
+            [Op.between]: [startedAt, finishedAt]
+          }
+        }]
+      },
+      group: [[sequelize.fn('date_format', sequelize.col('startedAt'), dateFormat), 'date']],
+      order: [ 'startedAt' ]
+    })
+      .then(streams => {
+        res.status(200).json(streams)
       })
       .catch(error => {
         res.status(500).json({ status: 500, message: error })
