@@ -8,11 +8,11 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      streamerId: {
+      streamId: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
-          model: 'Streamers',
+          model: 'Streams',
           key: 'id'
         }
       },

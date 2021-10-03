@@ -32,7 +32,7 @@ module.exports = {
       finishedAt: {
         type: Sequelize.DATE
       },
-      hourCount: {
+      duration: {
         type: Sequelize.FLOAT
       }
     })
