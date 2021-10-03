@@ -11,11 +11,7 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate (models) {
       // define association here
-      models.Viewer.belongsTo(models.Stream, {
-        foreignKey: {
-          allowNull: false
-        }
-      })
+      models.Viewer.belongsTo(models.Stream)
     }
   }
   Viewer.init({

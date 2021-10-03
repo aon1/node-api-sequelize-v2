@@ -145,7 +145,7 @@ module.exports = {
 
     return Stream.findAll({
       attributes: [
-        [ sequelize.fn('SUM', sequelize.col('hourCount')), 'total' ]
+        [ sequelize.fn('SUM', sequelize.col('duration')), 'total' ]
       ],
       group: [ 'gameId' ],
       where: {
@@ -177,14 +177,20 @@ module.exports = {
 
     return Stream.findAll({
       attributes: [
-        [ sequelize.fn('SUM', sequelize.col('hourCount')), 'total' ],
+        [ sequelize.fn('SUM', sequelize.col('duration')), 'total' ],
         [ sequelize.fn('date_format', sequelize.col('startedAt'), dateFormat), 'date' ]
       ],
       group: [ [sequelize.fn('date_format', sequelize.col('startedAt'), dateFormat), 'date'] ],
-      where: {
-        streamerId: id,
-        finishedAt: {
-          [Op.not]: null
+      include: {
+        model: Stream,
+        attributes: {
+          include: []
+        },
+        where: {
+          streamerId: id,
+          finishedAt: {
+            [Op.not]: null
+          }
         }
       }
     })
@@ -217,9 +223,44 @@ module.exports = {
         [ sequelize.fn('date_format', sequelize.col('Follower.createdAt'), dateFormat), 'date' ]
       ],
       group: [ [sequelize.fn('date_format', sequelize.col('Follower.createdAt'), dateFormat), 'date'] ],
+      include: {
+        model: Stream,
+        attributes: {
+          include: []
+        },
+        where: {
+          streamerId: id
+        }
+      }
+    })
+      .then(averageViewers => {
+        res.status(200).json(averageViewers)
+      })
+      .catch(error => {
+        res.status(500).json({ status: 500, message: error })
+      })
+  },
+
+  fetchStreams (req, res) {
+    const id = req.params.id
+
+    return Stream.findAll({
+      attributes: [
+        'id',
+        [ sequelize.fn('MAX', sequelize.col('Followers.count')), 'maxFollowers' ],
+        [ sequelize.fn('MAX', sequelize.col('Viewers.count')), 'maxViewers' ],
+        'duration',
+        'startedAt'
+      ],
       where: {
         streamerId: id
-      }
+      },
+      group: [ 'Stream.id' ],
+      include: [
+        { model: Game, attributes: { exclude: [ 'createdAt', 'updatedAt' ] } },
+        { model: Viewer, attributes: { exclude: [ 'createdAt', 'updatedAt' ] } },
+        { model: Follower, attributes: { exclude: [ 'createdAt', 'updatedAt' ] } }
+      ]
     })
       .then(averageViewers => {
         res.status(200).json(averageViewers)

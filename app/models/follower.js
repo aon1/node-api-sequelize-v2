@@ -11,15 +11,15 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate (models) {
       // define association here
-      models.Follower.belongsTo(models.Streamer)
+      models.Follower.belongsTo(models.Stream)
     }
   }
   Follower.init({
-    streamerId: {
+    streamId: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'Streamers',
+        model: 'Streams',
         key: 'id'
       }
     },

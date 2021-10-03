@@ -12,19 +12,10 @@ module.exports = (sequelize, DataTypes) => {
     static associate (models) {
       // define association here
       models.Stream.belongsTo(models.Streamer)
-      //   , {
-      //   as: 'Streamer'
-      //   // foreignKey: {
-      //   //   allowNull: false
-      //   // }
-      // })
       models.Stream.belongsTo(models.Game)
-      //   {
-      //   as: 'Game'
-      //   // foreignKey: {
-      //   //   allowNull: false
-      //   // }
-      // })
+
+      models.Stream.hasMany(models.Viewer)
+      models.Stream.hasMany(models.Follower)
     }
   }
   Stream.init({
@@ -52,7 +43,7 @@ module.exports = (sequelize, DataTypes) => {
     finishedAt: {
       type: DataTypes.DATE
     },
-    hourCount: {
+    duration: {
       type: DataTypes.FLOAT
     }
   }, {

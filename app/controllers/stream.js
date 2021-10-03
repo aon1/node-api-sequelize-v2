@@ -15,7 +15,7 @@ module.exports = {
     const streamerId = req.params.streamerId
 
     return Stream.findAll({
-      attributes: [ 'gameId', 'startedAt', 'finishedAt', 'hourCount' ],
+      attributes: [ 'gameId', 'startedAt', 'finishedAt', 'duration' ],
       where: {
         streamerId: streamerId
       }
@@ -32,7 +32,7 @@ module.exports = {
     const gameId = req.params.gameId
 
     return Stream.findAll({
-      attributes: [ 'streamerId', 'startedAt', 'finishedAt', 'hourCount' ],
+      attributes: [ 'streamerId', 'startedAt', 'finishedAt', 'duration' ],
       where: {
         gameId: gameId
       },
