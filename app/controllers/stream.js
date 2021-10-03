@@ -1,4 +1,5 @@
-const { Stream, Streamer, Game } = require('../models')
+const { Stream, Streamer, Game, Viewer, Follower } = require('../models')
+const sequelize = require('sequelize')
 
 module.exports = {
   index (req, res) {
@@ -37,6 +38,73 @@ module.exports = {
         gameId: gameId
       },
       include: [ { model: Streamer, attributes: { exclude: [ 'id', 'createdAt', 'updatedAt' ] } } ]
+    })
+      .then(stream => {
+        res.status(200).json(stream)
+      })
+      .catch(error => {
+        res.status(500).json({ status: 500, message: error })
+      })
+  },
+
+  async fetchStreamDetails (req, res) {
+    const id = req.params.id
+
+    return Stream.findAll({
+      attributes: [
+        'streamerId',
+        'startedAt',
+        'finishedAt',
+        'duration',
+        [ sequelize.fn('MAX', sequelize.col('Followers.count')), 'maxFollowers' ],
+        [ sequelize.fn('MAX', sequelize.col('Viewers.count')), 'maxViewers' ],
+        [ sequelize.literal(`(SELECT AVG(count) FROM viewers WHERE streamId = Stream.id) / duration`), 'averageViewersPerHour' ],
+        [ sequelize.literal(`(SELECT AVG(count) FROM followers WHERE streamId = Stream.id) / duration`), 'averageFollowersPerHour' ],
+        [ sequelize.literal(`((SELECT count FROM followers WHERE streamId = 1 ORDER BY id DESC LIMIT 1) - 
+          (SELECT count FROM followers where streamId = 1 ORDER BY id LIMIT 1)) / duration`), 'followersGainPerHour' ]
+      ],
+      where: {
+        id: id
+      },
+      include: [
+        { model: Game, attributes: { exclude: [ 'createdAt', 'updatedAt' ] } },
+        { model: Viewer, attributes: { include: [ 'createdAt' ], exclude: [ 'streamId', 'StreamId', 'updatedAt' ] } },
+        { model: Follower, attributes: { include: [ 'createdAt' ], exclude: [ 'streamId', 'StreamId', 'updatedAt' ] } }
+      ]
+    })
+      .then(stream => {
+        res.status(200).json(stream)
+      })
+      .catch(error => {
+        res.status(500).json({ status: 500, message: error })
+      })
+  },
+
+  fetchCumulativeViewerCount (req, res) {
+    const id = req.params.id
+
+    return Viewer.findAll({
+      attributes: { include: [ 'createdAt' ], exclude: [ 'streamId', 'StreamId', 'updatedAt' ] },
+      where: {
+        streamId: id
+      }
+    })
+      .then(stream => {
+        res.status(200).json(stream)
+      })
+      .catch(error => {
+        res.status(500).json({ status: 500, message: error })
+      })
+  },
+
+  fetchCumulativeFollowerCount (req, res) {
+    const id = req.params.id
+
+    return Follower.findAll({
+      attributes: { include: [ 'createdAt' ], exclude: [ 'streamId', 'StreamId', 'updatedAt' ] },
+      where: {
+        streamId: id
+      }
     })
       .then(stream => {
         res.status(200).json(stream)
