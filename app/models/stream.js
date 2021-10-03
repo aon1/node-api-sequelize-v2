@@ -53,7 +53,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DATE
     },
     hourCount: {
-      type: DataTypes.DATE
+      type: DataTypes.FLOAT
     }
   }, {
     sequelize,
