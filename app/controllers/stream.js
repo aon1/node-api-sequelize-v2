@@ -37,7 +37,43 @@ module.exports = {
       where: {
         gameId: gameId
       },
-      include: [ { model: Streamer, attributes: { exclude: [ 'id', 'createdAt', 'updatedAt' ] } } ]
+      include: [
+        { model: Streamer, attributes: { exclude: [ 'id', 'createdAt', 'updatedAt' ] } },
+        { model: Viewer, attributes: { exclude: [ 'id', 'createdAt', 'updatedAt' ] } },
+        { model: Follower, attributes: { exclude: [ 'id', 'createdAt', 'updatedAt' ] } }
+      ]
+    })
+      .then(stream => {
+        res.status(200).json(stream)
+      })
+      .catch(error => {
+        res.status(500).json({ status: 500, message: error })
+      })
+  },
+
+  fetchStreamByGames (req, res) {
+    return Game.findAll({
+      attributes: {
+        exclude: [ 'createdAt', 'updatedAt' ]
+      },
+      include: [
+        { model: Stream,
+          attributes: {
+            include: [
+              [ sequelize.literal(`(SELECT AVG(count) FROM viewers WHERE streamId = Streams.id) / duration`), 'averageViewersPerHour' ],
+              [ sequelize.literal(`(SELECT AVG(count) FROM followers WHERE streamId = Streams.id) / duration`), 'averageFollowersPerHour' ],
+              [ sequelize.literal(`(SELECT MAX(count) FROM viewers WHERE streamId = Streams.id)`), 'maxViewers' ],
+              [ sequelize.literal(`(SELECT MAX(count) FROM followers WHERE streamId = Streams.id)`), 'maxFollowers' ]
+            ],
+            exclude: [ 'id', 'createdAt', 'updatedAt', 'gameId', 'GameId', 'StreamerId' ]
+          },
+          include: [
+            { model: Streamer, attributes: { exclude: [ 'id', 'createdAt', 'updatedAt' ] } },
+            { model: Viewer, attributes: { include: [ 'createdAt' ], exclude: [ 'updatedAt', 'StreamId', 'streamId' ] } },
+            { model: Follower, attributes: { include: [ 'createdAt' ], exclude: [ 'updatedAt', 'StreamId', 'streamId' ] } }
+          ]
+        }
+      ]
     })
       .then(stream => {
         res.status(200).json(stream)
@@ -56,8 +92,8 @@ module.exports = {
         'startedAt',
         'finishedAt',
         'duration',
-        [ sequelize.fn('MAX', sequelize.col('Followers.count')), 'maxFollowers' ],
-        [ sequelize.fn('MAX', sequelize.col('Viewers.count')), 'maxViewers' ],
+        [ sequelize.literal(`(SELECT MAX(count) FROM viewers WHERE streamId = Stream.id)`), 'maxViewers' ],
+        [ sequelize.literal(`(SELECT MAX(count) FROM followers WHERE streamId = Stream.id)`), 'maxFollowers' ],
         [ sequelize.literal(`(SELECT AVG(count) FROM viewers WHERE streamId = Stream.id) / duration`), 'averageViewersPerHour' ],
         [ sequelize.literal(`(SELECT AVG(count) FROM followers WHERE streamId = Stream.id) / duration`), 'averageFollowersPerHour' ],
         [ sequelize.literal(`((SELECT count FROM followers WHERE streamId = 1 ORDER BY id DESC LIMIT 1) - 
