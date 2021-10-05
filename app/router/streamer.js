@@ -4,6 +4,7 @@ const router = express.Router()
 const controller = require('../controllers/streamer')
 
 router.get('/', controller.index)
+router.get('/top-streamers', controller.fetchTopStreamers)
 router.get('/:id', controller.findById)
 router.get('/:id/streams', controller.fetchStreams)
 router.get('/:id/recent-streams/:limit', controller.fetchRecentStreams)

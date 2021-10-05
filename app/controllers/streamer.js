@@ -1,12 +1,20 @@
 const { Streamer, Follower, Stream, Game, Viewer } = require('../models')
+const pagination = require('../services/pagination')
 const sequelize = require('sequelize')
 const { Op } = require('sequelize')
 
 module.exports = {
   index (req, res) {
-    return Streamer.findAll()
+    const { page, size } = req.query
+    const { limit, offset } = pagination.getPagination(page, size)
+
+    return Streamer.findAndCountAll({
+      limit: limit,
+      offset: offset
+    })
       .then(streamers => {
-        res.status(200).json(streamers)
+        const response = pagination.getPagingData(streamers, page, limit)
+        res.status(200).json(response)
       })
       .catch(error => {
         res.status(500).json({ status: 500, message: error })
@@ -444,6 +452,30 @@ module.exports = {
     })
       .then(streams => {
         res.status(200).json(streams)
+      })
+      .catch(error => {
+        res.status(500).json({ status: 500, message: error })
+      })
+  },
+
+  fetchTopStreamers (req, res) {
+    return Stream.findAll({
+      attributes: [
+        'id',
+        [ sequelize.fn('MAX', sequelize.col('Followers.count')), 'maxFollowers' ],
+        [ sequelize.fn('COALESCE', sequelize.fn('AVG', sequelize.col('Viewers.count')), 0), 'averageViewers' ],
+        [ sequelize.fn('MAX', sequelize.col('Viewers.count')), 'peakViewers' ],
+        'duration',
+        'startedAt',
+        'finishedAt'
+      ],
+      include: [
+        { model: Viewer, attributes: { exclude: [ 'id', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt' ] } },
+        { model: Follower, attributes: { exclude: [ 'id', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt' ] } }
+      ]
+    })
+      .then(averageViewers => {
+        res.status(200).json(averageViewers)
       })
       .catch(error => {
         res.status(500).json({ status: 500, message: error })
