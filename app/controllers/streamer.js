@@ -104,6 +104,8 @@ module.exports = {
   fetchAverageViewersByPeriod (req, res) {
     const id = req.params.id
     const period = req.params.period
+    const { page, size } = req.query
+    const { limit, offset } = pagination.getPagination(page, size)
 
     let dateFormat = ''
     if (period === 'minute') {
@@ -130,10 +132,13 @@ module.exports = {
         where: {
           streamerId: id
         }
-      }
+      },
+      limit: limit,
+      offset: offset
     })
       .then(averageViewers => {
-        res.status(200).json(averageViewers)
+        const response = pagination.getPagingData(averageViewers, page, limit)
+        res.status(200).json(response)
       })
       .catch(error => {
         res.status(500).json({ status: 500, message: error })
@@ -184,6 +189,8 @@ module.exports = {
 
   fetchGamesStreamed (req, res) {
     const id = req.params.id
+    const { page, size } = req.query
+    const { limit, offset } = pagination.getPagination(page, size)
 
     return Stream.findAll({
       attributes: [
@@ -196,10 +203,13 @@ module.exports = {
           [Op.not]: null
         }
       },
-      include: [ { model: Game, attributes: { exclude: [ 'createdAt', 'updatedAt' ] } } ]
+      include: [ { model: Game, attributes: { exclude: [ 'createdAt', 'updatedAt' ] } } ],
+      limit: limit,
+      offset: offset
     })
       .then(streamer => {
-        res.status(200).json(streamer)
+        const response = pagination.getPagingData(streamer, page, limit)
+        res.status(200).json(response)
       })
       .catch(error => {
         res.status(500).json({ status: 500, message: error })
@@ -276,6 +286,8 @@ module.exports = {
 
   fetchStreams (req, res) {
     const id = req.params.id
+    const { page, size } = req.query
+    const { limit, offset } = pagination.getPagination(page, size)
 
     return Stream.findAll({
       attributes: [
@@ -295,10 +307,13 @@ module.exports = {
         { model: Game, attributes: { exclude: [ 'createdAt', 'updatedAt' ] } },
         { model: Viewer, attributes: { exclude: [ 'id', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt' ] } },
         { model: Follower, attributes: { exclude: [ 'id', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt' ] } }
-      ]
+      ],
+      limit: limit,
+      offset: offset
     })
-      .then(averageViewers => {
-        res.status(200).json(averageViewers)
+      .then(streams => {
+        const response = pagination.getPagingData(streams, page, limit)
+        res.status(200).json(response)
       })
       .catch(error => {
         res.status(500).json({ status: 500, message: error })
@@ -307,7 +322,8 @@ module.exports = {
 
   fetchRecentStreams (req, res) {
     const id = req.params.id
-    const limit = parseInt(req.params.limit)
+    const { page, size } = req.query
+    const { limit, offset } = pagination.getPagination(page, size)
 
     return Stream.findAll({
       attributes: [
@@ -322,6 +338,7 @@ module.exports = {
         streamerId: id
       },
       limit: limit,
+      offset: offset,
       group: [ 'Stream.id' ],
       order: [ [ 'startedAt', 'DESC' ] ],
       include: [
@@ -330,7 +347,8 @@ module.exports = {
       ]
     })
       .then(averageViewers => {
-        res.status(200).json(averageViewers)
+        const response = pagination.getPagingData(averageViewers, page, limit)
+        res.status(200).json(response)
       })
       .catch(error => {
         res.status(500).json({ status: 500, message: error })
@@ -341,6 +359,8 @@ module.exports = {
     const id = req.params.id
     const startedAt = req.params.startDate
     const finishedAt = req.params.endDate
+    const { page, size } = req.query
+    const { limit, offset } = pagination.getPagination(page, size)
 
     const dateFormat = '%Y-%m-%d'
 
@@ -362,10 +382,13 @@ module.exports = {
         }]
       },
       group: [[sequelize.fn('date_format', sequelize.col('startedAt'), dateFormat), 'date']],
-      order: [ 'startedAt' ]
+      order: [ 'startedAt' ],
+      limit: limit,
+      offset: offset
     })
       .then(streams => {
-        res.status(200).json(streams)
+        const response = pagination.getPagingData(streams, page, limit)
+        res.status(200).json(response)
       })
       .catch(error => {
         res.status(500).json({ status: 500, message: error })
@@ -459,6 +482,9 @@ module.exports = {
   },
 
   fetchTopStreamers (req, res) {
+    const { page, size } = req.query
+    const { limit, offset } = pagination.getPagination(page, size)
+
     return Stream.findAll({
       attributes: [
         'id',
@@ -472,10 +498,13 @@ module.exports = {
       include: [
         { model: Viewer, attributes: { exclude: [ 'id', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt' ] } },
         { model: Follower, attributes: { exclude: [ 'id', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt' ] } }
-      ]
+      ],
+      limit: limit,
+      offset: offset
     })
-      .then(averageViewers => {
-        res.status(200).json(averageViewers)
+      .then(streamers => {
+        const response = pagination.getPagingData(streamers, page, limit)
+        res.status(200).json(response)
       })
       .catch(error => {
         res.status(500).json({ status: 500, message: error })
