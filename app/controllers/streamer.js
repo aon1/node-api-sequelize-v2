@@ -285,7 +285,7 @@ module.exports = {
       order: [ [ 'startedAt', 'DESC' ] ],
       include: [
         { model: Game, attributes: { exclude: [ 'createdAt', 'updatedAt' ] } },
-        { model: Viewer, attributes: { exclude: [ 'id', 'streamId', 'StreamId', 'createdAt', 'updatedAt' ] } },
+        { model: Viewer, attributes: { exclude: [ 'id', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt' ] } },
         { model: Follower, attributes: { exclude: [ 'id', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt' ] } }
       ]
     })
