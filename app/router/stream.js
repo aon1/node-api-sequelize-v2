@@ -8,9 +8,6 @@ router.get('/streamer/:streamerId', controller.findByStreamerId)
 router.get('/game/:gameId', controller.findByGameId)
 router.get('/games', controller.fetchStreamByGames)
 router.get('/:id/details', controller.fetchStreamDetails)
-router.get('/:id/cumulative-viewers', controller.fetchCumulativeViewerCount)
-router.get('/:id/cumulative-followers', controller.fetchCumulativeFollowerCount)
-router.get('/:id/details', controller.fetchStreamDetails)
 router.post('/', controller.create)
 
 module.exports = router

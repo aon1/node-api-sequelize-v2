@@ -31,9 +31,10 @@ module.exports = {
     return Follower.findOne({
       attributes: [ 'count' ],
       where: {
-        streamerId: id
+        streamId: id
       },
-      order: [ [ 'createdAt', 'DESC' ] ]
+      order: [ [ 'createdAt', 'DESC' ] ],
+      include: [ { model: Stream, attributes: { exclude: [ 'createdAt', 'updatedAt' ] } } ]
     })
       .then(streamer => {
         res.status(200).json(streamer)
@@ -63,6 +64,31 @@ module.exports = {
   },
 
   fetchAverageViewers (req, res) {
+    const id = req.params.id
+
+    return Viewer.findAll({
+      attributes: [
+        [ sequelize.fn('AVG', sequelize.col('count')), 'average' ]
+      ],
+      include: {
+        model: Stream,
+        attributes: {
+          include: []
+        },
+        where: {
+          streamerId: id
+        }
+      }
+    })
+      .then(averageViewers => {
+        res.status(200).json(averageViewers)
+      })
+      .catch(error => {
+        res.status(500).json({ status: 500, message: error })
+      })
+  },
+
+  fetchAverageViewersByPeriod (req, res) {
     const id = req.params.id
     const period = req.params.period
 
@@ -101,7 +127,7 @@ module.exports = {
       })
   },
 
-  fetchAverageFollowers (req, res) {
+  fetchAverageFollowersByPeriod (req, res) {
     const id = req.params.id
     const period = req.params.period
 
@@ -177,22 +203,13 @@ module.exports = {
 
     return Stream.findAll({
       attributes: [
-        [ sequelize.fn('SUM', sequelize.col('duration')), 'total' ],
-        [ sequelize.fn('date_format', sequelize.col('startedAt'), dateFormat), 'date' ]
+        [ sequelize.fn('date_format', sequelize.col('startedAt'), dateFormat), 'date' ],
+        [ sequelize.fn('SUM', sequelize.col('duration')), 'total' ]
       ],
-      group: [ [sequelize.fn('date_format', sequelize.col('startedAt'), dateFormat), 'date'] ],
-      include: {
-        model: Stream,
-        attributes: {
-          include: []
-        },
-        where: {
-          streamerId: id,
-          finishedAt: {
-            [Op.not]: null
-          }
-        }
-      }
+      where: {
+        streamerId: id
+      },
+      group: [ [sequelize.fn('date_format', sequelize.col('startedAt'), dateFormat), 'date'] ]
     })
       .then(averageViewers => {
         res.status(200).json(averageViewers)
@@ -219,8 +236,8 @@ module.exports = {
 
     return Follower.findAll({
       attributes: [
-        [ sequelize.fn('SUM', sequelize.col('count')), 'total' ],
-        [ sequelize.fn('date_format', sequelize.col('Follower.createdAt'), dateFormat), 'date' ]
+        [ sequelize.fn('date_format', sequelize.col('Follower.createdAt'), dateFormat), 'date' ],
+        [ sequelize.fn('SUM', sequelize.col('count')), 'total' ]
       ],
       group: [ [sequelize.fn('date_format', sequelize.col('Follower.createdAt'), dateFormat), 'date'] ],
       include: {
@@ -271,6 +288,38 @@ module.exports = {
       })
   },
 
+  fetchRecentStreams (req, res) {
+    const id = req.params.id
+    const limit = parseInt(req.params.limit)
+
+    return Stream.findAll({
+      attributes: [
+        'id',
+        [ sequelize.literal(`(SELECT MAX(count) FROM viewers WHERE streamId = id)`), 'maxViewers' ],
+        [ sequelize.literal(`(SELECT MAX(count) FROM followers WHERE streamId = id)`), 'maxFollowers' ],
+        'duration',
+        'startedAt',
+        'finishedAt'
+      ],
+      where: {
+        streamerId: id
+      },
+      limit: limit,
+      group: [ 'Stream.id' ],
+      order: [ [ 'startedAt', 'DESC' ] ],
+      include: [
+        { model: Viewer, attributes: { exclude: [ 'createdAt', 'updatedAt' ] } },
+        { model: Follower, attributes: { exclude: [ 'createdAt', 'updatedAt' ] } }
+      ]
+    })
+      .then(averageViewers => {
+        res.status(200).json(averageViewers)
+      })
+      .catch(error => {
+        res.status(500).json({ status: 500, message: error })
+      })
+  },
+
   fetchStreamsByDateRange (req, res) {
     const id = req.params.id
     const startedAt = req.params.startDate
@@ -295,6 +344,105 @@ module.exports = {
           }
         }]
       },
+      group: [[sequelize.fn('date_format', sequelize.col('startedAt'), dateFormat), 'date']],
+      order: [ 'startedAt' ]
+    })
+      .then(streams => {
+        res.status(200).json(streams)
+      })
+      .catch(error => {
+        res.status(500).json({ status: 500, message: error })
+      })
+  },
+
+  fetchCumulativeViewerCount (req, res) {
+    const id = req.params.id
+    const period = req.params.period
+
+    let dateFormat = ''
+    if (period === 'minute') {
+      dateFormat = '%Y-%m-%d %H:%m'
+    } else if (period === 'hour') {
+      dateFormat = '%Y-%m-%d %H'
+    } else if (period === 'day') {
+      dateFormat = '%Y-%m-%d'
+    } else if (period === 'month') {
+      dateFormat = '%Y-%m'
+    }
+
+    return Stream.findAll({
+      attributes: [
+        [ sequelize.fn('date_format', sequelize.col('startedAt'), dateFormat), 'date' ],
+        [ sequelize.fn('COUNT', sequelize.col('Stream.duration')), 'duration' ],
+        [ sequelize.fn('SUM', sequelize.col('count')), 'viewers' ]
+      ],
+      where: {
+        streamerId: id
+      },
+      include: [
+        {
+          model: Viewer,
+          attributes: {
+            exclude: [ 'createdAt', 'updatedAt' ]
+          }
+        }
+      ],
+      group: [[sequelize.fn('date_format', sequelize.col('startedAt'), dateFormat), 'date']],
+      order: [ 'startedAt' ]
+    })
+      .then(streams => {
+        res.status(200).json(streams)
+      })
+      .catch(error => {
+        res.status(500).json({ status: 500, message: error })
+      })
+
+    // return Viewer.findAll({
+    //   attributes: { include: [ 'createdAt' ], exclude: [ 'streamId', 'StreamId', 'updatedAt' ] },
+    //   where: {
+    //     streamId: id
+    //   }
+    // })
+    //   .then(stream => {
+    //     res.status(200).json(stream)
+    //   })
+    //   .catch(error => {
+    //     res.status(500).json({ status: 500, message: error })
+    //   })
+  },
+
+  fetchCumulativeFollowerCount (req, res) {
+    const id = req.params.id
+    const period = req.params.period
+
+    let dateFormat = ''
+    if (period === 'minute') {
+      dateFormat = '%Y-%m-%d %H:%m'
+    } else if (period === 'hour') {
+      dateFormat = '%Y-%m-%d %H'
+    } else if (period === 'day') {
+      dateFormat = '%Y-%m-%d'
+    } else if (period === 'month') {
+      dateFormat = '%Y-%m'
+    }
+
+    return Stream.findAll({
+      attributes: [
+        [ sequelize.fn('date_format', sequelize.col('startedAt'), dateFormat), 'date' ],
+        [sequelize.fn('COUNT', sequelize.col('Stream.id')), 'streams'],
+        [ sequelize.fn('SUM', sequelize.col('count')), 'viewers' ]
+      ],
+      where: {
+        streamerId: id
+      },
+      include: [
+        {
+          model: Follower,
+          attributes: {
+            exclude: [ 'createdAt', 'updatedAt' ]
+          }
+        }
+      ],
       group: [[sequelize.fn('date_format', sequelize.col('startedAt'), dateFormat), 'date']],
       order: [ 'startedAt' ]
     })

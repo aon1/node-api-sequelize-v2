@@ -116,51 +116,8 @@ module.exports = {
       })
   },
 
-  fetchCumulativeViewerCount (req, res) {
-    const id = req.params.id
-
-    return Viewer.findAll({
-      attributes: { include: [ 'createdAt' ], exclude: [ 'streamId', 'StreamId', 'updatedAt' ] },
-      where: {
-        streamId: id
-      }
-    })
-      .then(stream => {
-        res.status(200).json(stream)
-      })
-      .catch(error => {
-        res.status(500).json({ status: 500, message: error })
-      })
-  },
-
-  fetchCumulativeFollowerCount (req, res) {
-    const id = req.params.id
-
-    return Follower.findAll({
-      attributes: { include: [ 'createdAt' ], exclude: [ 'streamId', 'StreamId', 'updatedAt' ] },
-      where: {
-        streamId: id
-      }
-    })
-      .then(stream => {
-        res.status(200).json(stream)
-      })
-      .catch(error => {
-        res.status(500).json({ status: 500, message: error })
-      })
-  },
-
   async create (req, res) {
     const data = req.body
-
-    // const game = await Game.findByPk(data.gameId)
-    // const streamer = await Streamer.findByPk(data.streamerId)
-    // {
-    //   streamerId: data.streamerId,
-    //     gameId: data.gameId
-    // }, {
-    //   include: [ Streamer, Game ]
-    // }
 
     return Stream.create(data)
       .then(stream => {
