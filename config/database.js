@@ -4,5 +4,6 @@ module.exports = {
   database: 'mystats',
   host: 'localhost',
   port: 3307,
-  dialect: 'mysql'
+  dialect: 'mysql',
+  dialectOptions: { decimalNumbers: true }
 }

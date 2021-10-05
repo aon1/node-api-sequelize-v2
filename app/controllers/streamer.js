@@ -34,7 +34,12 @@ module.exports = {
         streamId: id
       },
       order: [ [ 'createdAt', 'DESC' ] ],
-      include: [ { model: Stream, attributes: { exclude: [ 'createdAt', 'updatedAt' ] } } ]
+      include: [ {
+        model: Stream,
+        attributes: {
+          exclude: [ 'id', 'streamerId', 'gameId', 'duration', 'GameId', 'StreamerId', 'createdAt', 'updatedAt', 'startedAt', 'finishedAt' ] }
+      }
+      ]
     })
       .then(streamer => {
         res.status(200).json(streamer)
@@ -52,8 +57,8 @@ module.exports = {
       where: {
         streamerId: id
       },
-      include: [ { model: Game, attributes: { exclude: [ 'createdAt', 'updatedAt' ] } } ],
-      order: [ [ 'startedAt', 'DESC' ] ]
+      order: [ [ 'startedAt', 'DESC' ] ],
+      limit: 1
     })
       .then(streamer => {
         res.status(200).json(streamer)
@@ -66,14 +71,14 @@ module.exports = {
   fetchAverageViewers (req, res) {
     const id = req.params.id
 
-    return Viewer.findAll({
+    return Viewer.findOne({
       attributes: [
-        [ sequelize.fn('AVG', sequelize.col('count')), 'average' ]
+        [ sequelize.fn('COALESCE', sequelize.fn('AVG', sequelize.col('count')), 0), 'average' ]
       ],
       include: {
         model: Stream,
         attributes: {
-          include: []
+          exclude: [ 'id', 'streamerId', 'gameId', 'duration', 'GameId', 'StreamerId', 'createdAt', 'updatedAt', 'startedAt', 'finishedAt' ]
         },
         where: {
           streamerId: id
@@ -105,8 +110,8 @@ module.exports = {
 
     return Viewer.findAll({
       attributes: [
-        [ sequelize.fn('AVG', sequelize.col('count')), 'average' ],
-        [ sequelize.fn('date_format', sequelize.col('createdAt'), dateFormat), 'date' ]
+        [ sequelize.fn('date_format', sequelize.col('createdAt'), dateFormat), 'date' ],
+        [ sequelize.fn('COALESCE', sequelize.fn('AVG', sequelize.col('count')), 0), 'average' ]
       ],
       group: [ [sequelize.fn('date_format', sequelize.col('createdAt'), dateFormat), 'date'] ],
       include: {
@@ -144,17 +149,20 @@ module.exports = {
 
     return Follower.findAll({
       attributes: [
-        [ sequelize.fn('AVG', sequelize.col('count')), 'average' ],
-        [ sequelize.fn('date_format', sequelize.col('Follower.createdAt'), dateFormat), 'date' ]
+        [ sequelize.fn('date_format', sequelize.col('Follower.createdAt'), dateFormat), 'date' ],
+        [ sequelize.fn('COALESCE', sequelize.fn('AVG', sequelize.col('count')), 0), 'average' ]
       ],
       group: [ [sequelize.fn('date_format', sequelize.col('Follower.createdAt'), dateFormat), 'date'] ],
       include: {
-        model: Streamer,
+        model: Stream,
         attributes: {
-          exclude: [ ]
+          exclude: [ 'id', 'streamerId', 'gameId', 'duration', 'GameId', 'StreamerId', 'createdAt', 'updatedAt', 'startedAt', 'finishedAt' ]
         },
-        where: {
-          id: id
+        include: {
+          model: Streamer,
+          where: {
+            id: id
+          }
         }
       }
     })
@@ -171,7 +179,7 @@ module.exports = {
 
     return Stream.findAll({
       attributes: [
-        [ sequelize.fn('SUM', sequelize.col('duration')), 'total' ]
+        [ sequelize.fn('COALESCE', sequelize.fn('SUM', sequelize.col('duration')), 0), 'total' ]
       ],
       group: [ 'gameId' ],
       where: {
@@ -204,7 +212,7 @@ module.exports = {
     return Stream.findAll({
       attributes: [
         [ sequelize.fn('date_format', sequelize.col('startedAt'), dateFormat), 'date' ],
-        [ sequelize.fn('SUM', sequelize.col('duration')), 'total' ]
+        [ sequelize.fn('COALESCE', sequelize.fn('SUM', sequelize.col('duration')), 0), 'total' ]
       ],
       where: {
         streamerId: id
@@ -237,13 +245,13 @@ module.exports = {
     return Follower.findAll({
       attributes: [
         [ sequelize.fn('date_format', sequelize.col('Follower.createdAt'), dateFormat), 'date' ],
-        [ sequelize.fn('SUM', sequelize.col('count')), 'total' ]
+        [ sequelize.fn('COALESCE', sequelize.fn('SUM', sequelize.col('count')), 0), 'total' ]
       ],
       group: [ [sequelize.fn('date_format', sequelize.col('Follower.createdAt'), dateFormat), 'date'] ],
       include: {
         model: Stream,
         attributes: {
-          include: []
+          exclude: [ 'id', 'streamerId', 'gameId', 'duration', 'GameId', 'StreamerId', 'createdAt', 'updatedAt', 'startedAt', 'finishedAt' ]
         },
         where: {
           streamerId: id
@@ -267,7 +275,8 @@ module.exports = {
         [ sequelize.fn('MAX', sequelize.col('Followers.count')), 'maxFollowers' ],
         [ sequelize.fn('MAX', sequelize.col('Viewers.count')), 'maxViewers' ],
         'duration',
-        'startedAt'
+        'startedAt',
+        'finishedAt'
       ],
       where: {
         streamerId: id
@@ -276,8 +285,8 @@ module.exports = {
       order: [ [ 'startedAt', 'DESC' ] ],
       include: [
         { model: Game, attributes: { exclude: [ 'createdAt', 'updatedAt' ] } },
-        { model: Viewer, attributes: { exclude: [ 'createdAt', 'updatedAt' ] } },
-        { model: Follower, attributes: { exclude: [ 'createdAt', 'updatedAt' ] } }
+        { model: Viewer, attributes: { exclude: [ 'id', 'streamId', 'StreamId', 'createdAt', 'updatedAt' ] } },
+        { model: Follower, attributes: { exclude: [ 'id', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt' ] } }
       ]
     })
       .then(averageViewers => {
@@ -308,8 +317,8 @@ module.exports = {
       group: [ 'Stream.id' ],
       order: [ [ 'startedAt', 'DESC' ] ],
       include: [
-        { model: Viewer, attributes: { exclude: [ 'createdAt', 'updatedAt' ] } },
-        { model: Follower, attributes: { exclude: [ 'createdAt', 'updatedAt' ] } }
+        { model: Viewer, attributes: { exclude: [ 'id', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt' ] } },
+        { model: Follower, attributes: { exclude: [ 'id', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt' ] } }
       ]
     })
       .then(averageViewers => {
@@ -329,8 +338,8 @@ module.exports = {
 
     return Stream.findAll({
       attributes: [
-        [sequelize.fn('date_format', sequelize.col('startedAt'), dateFormat), 'date'],
-        [sequelize.fn('COUNT', sequelize.col('*')), 'count']
+        [ sequelize.fn('date_format', sequelize.col('startedAt'), dateFormat), 'date' ],
+        [ sequelize.fn('COALESCE', sequelize.fn('COUNT', sequelize.col('*')), 0), 'count' ]
       ],
       where: {
         streamerId: id,
@@ -373,8 +382,8 @@ module.exports = {
     return Stream.findAll({
       attributes: [
         [ sequelize.fn('date_format', sequelize.col('startedAt'), dateFormat), 'date' ],
-        [ sequelize.fn('COUNT', sequelize.col('Stream.duration')), 'duration' ],
-        [ sequelize.fn('SUM', sequelize.col('count')), 'viewers' ]
+        [ sequelize.fn('COALESCE', sequelize.fn('COUNT', sequelize.col('Stream.duration')), 0), 'duration' ],
+        [ sequelize.fn('COALESCE', sequelize.fn('SUM', sequelize.col('count')), 0), 'viewers' ]
       ],
       where: {
         streamerId: id
@@ -383,7 +392,7 @@ module.exports = {
         {
           model: Viewer,
           attributes: {
-            exclude: [ 'createdAt', 'updatedAt' ]
+            exclude: [ 'id', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt' ]
           }
         }
       ],
@@ -396,19 +405,6 @@ module.exports = {
       .catch(error => {
         res.status(500).json({ status: 500, message: error })
       })
-
-    // return Viewer.findAll({
-    //   attributes: { include: [ 'createdAt' ], exclude: [ 'streamId', 'StreamId', 'updatedAt' ] },
-    //   where: {
-    //     streamId: id
-    //   }
-    // })
-    //   .then(stream => {
-    //     res.status(200).json(stream)
-    //   })
-    //   .catch(error => {
-    //     res.status(500).json({ status: 500, message: error })
-    //   })
   },
 
   fetchCumulativeFollowerCount (req, res) {
@@ -429,8 +425,8 @@ module.exports = {
     return Stream.findAll({
       attributes: [
         [ sequelize.fn('date_format', sequelize.col('startedAt'), dateFormat), 'date' ],
-        [sequelize.fn('COUNT', sequelize.col('Stream.id')), 'streams'],
-        [ sequelize.fn('SUM', sequelize.col('count')), 'viewers' ]
+        [ sequelize.fn('COALESCE', sequelize.fn('SUM', sequelize.col('count')), 0), 'followers' ],
+        [ sequelize.fn('COUNT', sequelize.col('Stream.id')), 'streams' ]
       ],
       where: {
         streamerId: id
@@ -439,7 +435,7 @@ module.exports = {
         {
           model: Follower,
           attributes: {
-            exclude: [ 'createdAt', 'updatedAt' ]
+            exclude: [ 'id', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt' ]
           }
         }
       ],
