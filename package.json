@@ -7,7 +7,8 @@
     "start": "nodemon node index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "./node_modules/.bin/eslint --fix app/**/*.js",
-    "migrate": "./node_modules/.bin/sequelize db:migrate"
+    "migrate": "npx sequelize-cli db:migrate",
+    "seed": "npx sequelize-cli db:seed"
   },
   "keywords": [],
   "author": "",
@@ -17,7 +18,8 @@
     "express": "4.17.1",
     "mysql2": "^2.3.0",
     "sequelize": "^6.6.5",
-    "nodemon": "^1.18.10"
+    "nodemon": "^1.18.10",
+    "sequelize-cli": "^6.2.0"
   },
   "devDependencies": {
     "eslint": "^5.15.3",
