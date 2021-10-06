@@ -98,7 +98,7 @@ module.exports = {
         [ sequelize.literal(`(SELECT AVG(count) FROM followers WHERE streamId = Stream.id) / duration`), 'averageFollowersPerHour' ],
         [ sequelize.literal(`((SELECT count FROM followers WHERE streamId = 1 ORDER BY id DESC LIMIT 1) - 
           (SELECT count FROM followers where streamId = 1 ORDER BY id LIMIT 1)) / duration`), 'followersGainPerHour' ],
-        [ sequelize.literal(`(SELECT MAX(count) FROM viewers WHERE streamId = Stream.id) * duration`), 'hoursWatched' ],
+        [ sequelize.literal(`(SELECT AVG(count) FROM viewers WHERE streamId = Stream.id) * duration`), 'hoursWatched' ],
         [ sequelize.literal(`(SELECT SUM(count) FROM viewers WHERE streamId = Stream.id) / duration`), 'averageConcurrentViewers' ]
       ],
       where: {
