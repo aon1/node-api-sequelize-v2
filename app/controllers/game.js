@@ -1,10 +1,18 @@
 const { Game } = require('../models')
+const pagination = require('../services/pagination')
 
 module.exports = {
   index (req, res) {
-    return Game.findAll()
+    const { page, size } = req.query
+    const { limit, offset } = pagination.getPagination(page, size)
+
+    return Game.findAndCountAll({
+      limit: limit,
+      offset: offset
+    })
       .then(games => {
-        res.status(200).json(games)
+        const response = pagination.getPagingData(games, page, limit)
+        res.status(200).json(response)
       })
       .catch(error => {
         res.status(500).json({ status: 500, message: error })

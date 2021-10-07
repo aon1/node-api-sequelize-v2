@@ -40,8 +40,8 @@ module.exports = {
         })
       })
       .catch(error => {
-        console.error('Error on creating streamer', error)
-        res.status(500).json({ message: 'Error on creating streamer' })
+        console.error('Error on creating follower', error)
+        res.status(500).json({ message: 'Error on creating follower' })
       })
   }
 }

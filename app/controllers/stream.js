@@ -1,5 +1,6 @@
 const { Stream, Streamer, Game, Viewer, Follower } = require('../models')
 const sequelize = require('sequelize')
+const pagination = require('../services/pagination')
 
 module.exports = {
   index (req, res) {
@@ -52,10 +53,12 @@ module.exports = {
   },
 
   fetchStreamByGames (req, res) {
-    return Game.findAll({
-      attributes: {
-        exclude: [ 'createdAt', 'updatedAt' ]
-      },
+    const { page, size } = req.query
+    const { limit, offset } = pagination.getPagination(page, size)
+
+    return Game.findAndCountAll({
+      subQuery: false,
+      attributes: { exclude: [ 'createdAt', 'updatedAt' ] },
       include: [
         { model: Stream,
           attributes: {
@@ -69,14 +72,18 @@ module.exports = {
           },
           include: [
             { model: Streamer, attributes: { exclude: [ 'id', 'createdAt', 'updatedAt' ] } },
-            { model: Viewer, attributes: { include: [ 'createdAt' ], exclude: [ 'updatedAt', 'StreamId', 'streamId' ] } },
-            { model: Follower, attributes: { include: [ 'createdAt' ], exclude: [ 'updatedAt', 'StreamId', 'streamId' ] } }
+            { model: Viewer, attributes: { exclude: [ 'id', 'count', 'createdAt', 'updatedAt', 'StreamId', 'streamId' ] } },
+            { model: Follower, attributes: { exclude: [ 'id', 'count', 'createdAt', 'updatedAt', 'StreamId', 'streamId' ] } }
           ]
         }
-      ]
+      ],
+      group: [ 'id' ],
+      limit: limit,
+      offset: offset
     })
-      .then(stream => {
-        res.status(200).json(stream)
+      .then(streams => {
+        const response = pagination.getPagingDataAggregated(streams, page, limit)
+        res.status(200).json(response)
       })
       .catch(error => {
         res.status(500).json({ status: 500, message: error })
