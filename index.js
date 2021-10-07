@@ -1,6 +1,7 @@
 const express = require('express')
 const app = express()
 const router = require('./app/router/')
+const port = require('./config/config')
 
 app.use(express.json())
 app.get('/', (req, res) => {
@@ -15,6 +16,7 @@ app.use('/api', router)
 //   }
 // })
 
-app.listen(process.env.PORT, () => {
-  console.log(`Node server listening on port ${process.env.PORT}`)
+// const port = process.env.PORT || 3000
+app.listen(port.PORT, () => {
+  console.log(`Node server listening on port ${port.PORT}`)
 })

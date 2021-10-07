@@ -192,7 +192,7 @@ module.exports = {
     const { page, size } = req.query
     const { limit, offset } = pagination.getPagination(page, size)
 
-    return Stream.findAll({
+    return Stream.findAndCountAll({
       attributes: [
         [ sequelize.fn('COALESCE', sequelize.fn('SUM', sequelize.col('duration')), 0), 'total' ]
       ],
@@ -208,7 +208,7 @@ module.exports = {
       offset: offset
     })
       .then(streamer => {
-        const response = pagination.getPagingData(streamer, page, limit)
+        const response = pagination.getPagingDataAggregated(streamer, page, limit)
         res.status(200).json(response)
       })
       .catch(error => {
@@ -289,7 +289,8 @@ module.exports = {
     const { page, size } = req.query
     const { limit, offset } = pagination.getPagination(page, size)
 
-    return Stream.findAll({
+    return Stream.findAndCountAll({
+      subQuery: false,
       attributes: [
         'id',
         [ sequelize.fn('MAX', sequelize.col('Followers.count')), 'maxFollowers' ],
@@ -312,7 +313,7 @@ module.exports = {
       offset: offset
     })
       .then(streams => {
-        const response = pagination.getPagingData(streams, page, limit)
+        const response = pagination.getPagingDataAggregated(streams, page, limit)
         res.status(200).json(response)
       })
       .catch(error => {
@@ -325,7 +326,7 @@ module.exports = {
     const { page, size } = req.query
     const { limit, offset } = pagination.getPagination(page, size)
 
-    return Stream.findAll({
+    return Stream.findAndCountAll({
       attributes: [
         'id',
         [ sequelize.literal(`(SELECT MAX(count) FROM viewers WHERE streamId = id)`), 'maxViewers' ],
@@ -347,7 +348,7 @@ module.exports = {
       ]
     })
       .then(averageViewers => {
-        const response = pagination.getPagingData(averageViewers, page, limit)
+        const response = pagination.getPagingDataAggregated(averageViewers, page, limit)
         res.status(200).json(response)
       })
       .catch(error => {
@@ -364,7 +365,7 @@ module.exports = {
 
     const dateFormat = '%Y-%m-%d'
 
-    return Stream.findAll({
+    return Stream.findAndCountAll({
       attributes: [
         [ sequelize.fn('date_format', sequelize.col('startedAt'), dateFormat), 'date' ],
         [ sequelize.fn('COALESCE', sequelize.fn('COUNT', sequelize.col('*')), 0), 'count' ]
@@ -381,16 +382,19 @@ module.exports = {
           }
         }]
       },
-      group: [[sequelize.fn('date_format', sequelize.col('startedAt'), dateFormat), 'date']],
+      group: [ sequelize.fn('date_format', sequelize.col('startedAt'), dateFormat) ],
+      distinct: true,
       order: [ 'startedAt' ],
       limit: limit,
       offset: offset
     })
       .then(streams => {
-        const response = pagination.getPagingData(streams, page, limit)
+        console.log(streams)
+        const response = pagination.getPagingDataAggregated(streams, page, limit)
         res.status(200).json(response)
       })
       .catch(error => {
+        console.log(error)
         res.status(500).json({ status: 500, message: error })
       })
   },
@@ -485,9 +489,11 @@ module.exports = {
     const { page, size } = req.query
     const { limit, offset } = pagination.getPagination(page, size)
 
-    return Stream.findAll({
+    return Stream.findAndCountAll({
+      subQuery: false,
       attributes: [
-        'id',
+        'streamerId',
+        [ sequelize.literal(`Streamer.login`), 'login' ],
         [ sequelize.fn('MAX', sequelize.col('Followers.count')), 'maxFollowers' ],
         [ sequelize.fn('COALESCE', sequelize.fn('AVG', sequelize.col('Viewers.count')), 0), 'averageViewers' ],
         [ sequelize.fn('MAX', sequelize.col('Viewers.count')), 'peakViewers' ],
@@ -496,14 +502,17 @@ module.exports = {
         'finishedAt'
       ],
       include: [
+        { model: Streamer, attributes: { exclude: [ 'id', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt' ] } },
         { model: Viewer, attributes: { exclude: [ 'id', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt' ] } },
         { model: Follower, attributes: { exclude: [ 'id', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt' ] } }
       ],
+      distinct: true,
+      group: [ 'streamerId' ],
       limit: limit,
       offset: offset
     })
       .then(streamers => {
-        const response = pagination.getPagingData(streamers, page, limit)
+        const response = pagination.getPagingDataAggregated(streamers, page, limit)
         res.status(200).json(response)
       })
       .catch(error => {

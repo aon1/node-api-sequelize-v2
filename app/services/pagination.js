@@ -6,11 +6,20 @@ module.exports = {
     return { limit, offset }
   },
 
-  getPagingData (data, page, limit) {
-    const { count: totalItems, rows: streamers } = data
+  getPagingData (input, page, limit) {
+    const { count: totalItems, rows: data } = input
     const currentPage = page ? +page : 0
     const totalPages = Math.ceil(totalItems / limit)
 
-    return { totalItems, streamers, totalPages, currentPage }
+    return { totalItems, data, totalPages, currentPage }
+  },
+
+  getPagingDataAggregated (input, page, limit) {
+    const totalItems = input.count.length
+    const data = input.rows
+    const currentPage = page ? +page : 0
+    const totalPages = Math.ceil(totalItems / limit)
+
+    return { totalItems, data, totalPages, currentPage }
   }
 }
