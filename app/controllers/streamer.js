@@ -194,7 +194,7 @@ module.exports = {
 
     return Stream.findAndCountAll({
       attributes: [
-        [ sequelize.fn('COALESCE', sequelize.fn('SUM', sequelize.col('duration')), 0), 'total' ]
+        [ sequelize.fn('COALESCE', sequelize.fn('SUM', sequelize.col('duration')), 0), 'duration' ]
       ],
       group: [ 'gameId' ],
       where: {
@@ -360,12 +360,10 @@ module.exports = {
     const id = req.params.id
     const startedAt = req.params.startDate
     const finishedAt = req.params.endDate
-    const { page, size } = req.query
-    const { limit, offset } = pagination.getPagination(page, size)
 
     const dateFormat = '%Y-%m-%d'
 
-    return Stream.findAndCountAll({
+    return Stream.findAll({
       attributes: [
         [ sequelize.fn('date_format', sequelize.col('startedAt'), dateFormat), 'date' ],
         [ sequelize.fn('COALESCE', sequelize.fn('COUNT', sequelize.col('*')), 0), 'count' ]
@@ -384,14 +382,11 @@ module.exports = {
       },
       group: [ sequelize.fn('date_format', sequelize.col('startedAt'), dateFormat) ],
       distinct: true,
-      order: [ 'startedAt' ],
-      limit: limit,
-      offset: offset
+      order: [ 'startedAt' ]
     })
       .then(streams => {
         console.log(streams)
-        const response = pagination.getPagingDataAggregated(streams, page, limit)
-        res.status(200).json(response)
+        res.status(200).json(streams)
       })
       .catch(error => {
         console.log(error)
@@ -494,17 +489,21 @@ module.exports = {
       attributes: [
         'streamerId',
         [ sequelize.literal(`Streamer.login`), 'login' ],
-        [ sequelize.fn('MAX', sequelize.col('Followers.count')), 'maxFollowers' ],
-        [ sequelize.fn('COALESCE', sequelize.fn('AVG', sequelize.col('Viewers.count')), 0), 'averageViewers' ],
+        [ sequelize.fn('MAX', sequelize.col('Followers.count')), 'followers' ],
+        [ sequelize.literal(`(SELECT AVG(count) FROM viewers WHERE streamId = streamerId ORDER BY id DESC LIMIT 10)`), 'averageViewers' ],
         [ sequelize.fn('MAX', sequelize.col('Viewers.count')), 'peakViewers' ],
         'duration',
         'startedAt',
         'finishedAt'
       ],
       include: [
-        { model: Streamer, attributes: { exclude: [ 'id', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt' ] } },
         { model: Viewer, attributes: { exclude: [ 'id', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt' ] } },
-        { model: Follower, attributes: { exclude: [ 'id', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt' ] } }
+        { model: Follower, attributes: { exclude: [ 'id', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt' ] } },
+        { model: Streamer,
+          attributes: {
+            exclude: [ 'id', 'externalId', 'login', 'email', 'name', 'thumbnail', 'site', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt' ]
+          }
+        }
       ],
       distinct: true,
       group: [ 'streamerId' ],
