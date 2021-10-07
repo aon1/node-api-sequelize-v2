@@ -19,7 +19,7 @@ boilerplate api with sequelize (mysql), jsonwebtoken and joi validation
 #### Generate migration file(s)
  
 ``` 
-node_modules/.bin/sequelize migration:create --name=create-<model name>
+npx sequelize-cli model:generate --name Viewer --attributes count:int,createdAt:date
 ```
 
 #### Edit migration file on database/migrations
@@ -27,7 +27,7 @@ node_modules/.bin/sequelize migration:create --name=create-<model name>
 #### Run migrate command to create table(s)
 
 ```
-node_modules/.bin/sequelize db:migrate
+npx sequelize-cli db:migrate
 ```
 
 #### On app/router/index.js, add the following lines to include the new route
@@ -40,7 +40,7 @@ router.use('/foo', foo);
 
 #### Run project
 ```
-npm start
+docker-compose up
 ```
 
 Route will be available on http://localhost:3000/api/foo
