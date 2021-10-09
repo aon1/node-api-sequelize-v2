@@ -35,6 +35,10 @@ module.exports = (sequelize, DataTypes) => {
         key: 'id'
       }
     },
+    externalStreamId: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
     startedAt: {
       type: DataTypes.DATE,
       defaultValue: new Date(),
