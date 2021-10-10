@@ -3,8 +3,7 @@ const router = express.Router()
 
 const controller = require('../controllers/twtich')
 
-// router.get('/top-games', controller.fetchTopGames)
-router.get('/streams/:login', controller.fetchStream)
-router.get('/streams', controller.fetchStreams)
+router.get('/top-games', controller.fetchTopGamesJob)
+router.get('/streams', controller.fetchStreamsJob)
 
 module.exports = router

@@ -2,6 +2,7 @@ const express = require('express')
 const app = express()
 const router = require('./app/router/')
 const port = require('./config/config')
+const scheduler = require('./app/services/cron')
 
 app.use(express.json())
 app.get('/', (req, res) => {
@@ -15,6 +16,8 @@ app.use('/api', router)
 //     return res.status(err.output.statusCode).json(err.output.payload)
 //   }
 // })
+
+// scheduler.schedule('controller.fetchStreams')
 
 // const port = process.env.PORT || 3000
 app.listen(port.PORT, () => {
