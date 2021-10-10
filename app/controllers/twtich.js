@@ -66,7 +66,7 @@ module.exports = {
 
           cursor = streamers.cursor
           if (cursor) {
-            filter.set('after', cursor)
+            filter['after'] = cursor
           }
 
           await new Promise(resolve => setTimeout(resolve, 5000))
@@ -101,7 +101,7 @@ module.exports = {
 
       cursor = games.cursor
       if (cursor) {
-        filter.set('after', cursor)
+        filter['after'] = cursor
       }
 
       await new Promise(resolve => setTimeout(resolve, 5000))
