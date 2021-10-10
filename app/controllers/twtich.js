@@ -1,4 +1,4 @@
-const { Streamer, Stream, Game, Viewer } = require('../models')
+const { Streamer, Stream, Game, Viewer, Follower } = require('../models')
 const pagination = require('../services/pagination')
 const twitchApi = require('../services/twitch')
 
@@ -43,10 +43,16 @@ module.exports = {
                       startedAt: s.startDate,
                       gameId: game.id
                     }
-                  }).then(created => {
+                  }).then(async created => {
                     Viewer.create({
                       streamId: created[0].id,
                       count: s.viewers
+                    })
+
+                    const followers = await twitchApi.getFollowers({ followedUser: streamersMap.get(s.userName).externalId })
+                    Follower.create({
+                      streamId: created[0].id,
+                      count: followers.total
                     })
                   })
                 })
