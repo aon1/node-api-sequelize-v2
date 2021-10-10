@@ -13,5 +13,7 @@ module.exports = {
   MYSQL_PASSWORD: process.env.MYSQL_PASSWORD,
   MYSQL_HOST: process.env.MYSQL_HOST,
   MYSQL_PORT: process.env.MYSQL_PORT,
-  MYSQL_DATABASE: process.env.MYSQL_DATABASE
+  MYSQL_DATABASE: process.env.MYSQL_DATABASE,
+  TWITCH_CLIENT_ID: process.env.TWITCH_CLIENT_ID,
+  TWITCH_ACCESS_TOKEN: process.env.TWITCH_ACCESS_TOKEN
 }
