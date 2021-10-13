@@ -6,7 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile
     environment:
-      NODE_ENV: 'development'
+      NODE_ENV: 'local'
     volumes:
       - .:/app
     ports:

@@ -7,5 +7,11 @@ module.exports = {
   host: config.MYSQL_HOST,
   port: config.MYSQL_PORT,
   dialect: 'mysql',
-  dialectOptions: { decimalNumbers: true }
+  dialectOptions: { decimalNumbers: true },
+  sshUsername: config.SSH_USERNAME,
+  sshHost: config.SSH_HOST,
+  sshPort: config.SSH_PORT,
+  sshDstHost: config.SSH_DST_HOST,
+  sshDstPort: config.SSH_DST_PORT,
+  sshPrivateKey: config.SSH_PRIVATE_KEY
 }

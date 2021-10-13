@@ -35,7 +35,7 @@ module.exports = (sequelize, DataTypes) => {
         key: 'id'
       }
     },
-    externalStreamId: {
+    externalId: {
       type: DataTypes.STRING,
       allowNull: false
     },

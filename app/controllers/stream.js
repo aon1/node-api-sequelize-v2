@@ -61,12 +61,13 @@ module.exports = {
       attributes: { exclude: [ 'createdAt', 'updatedAt' ] },
       include: [
         { model: Stream,
+          // required: true,
           attributes: {
             include: [
-              [ sequelize.literal(`(SELECT AVG(count) FROM viewers WHERE streamId = Streams.id) / duration`), 'averageViewersPerHour' ],
-              [ sequelize.literal(`(SELECT AVG(count) FROM followers WHERE streamId = Streams.id) / duration`), 'averageFollowersPerHour' ],
-              [ sequelize.literal(`(SELECT MAX(count) FROM viewers WHERE streamId = Streams.id)`), 'maxViewers' ],
-              [ sequelize.literal(`(SELECT MAX(count) FROM followers WHERE streamId = Streams.id)`), 'maxFollowers' ]
+              [ sequelize.literal(`(SELECT AVG(count) FROM Viewers WHERE streamId = Streams.id) / duration`), 'averageViewersPerHour' ],
+              [ sequelize.literal(`(SELECT AVG(count) FROM Followers WHERE streamId = Streams.id) / duration`), 'averageFollowersPerHour' ],
+              [ sequelize.literal(`(SELECT MAX(count) FROM Viewers WHERE streamId = Streams.id)`), 'maxViewers' ],
+              [ sequelize.literal(`(SELECT MAX(count) FROM Followers WHERE streamId = Streams.id)`), 'maxFollowers' ]
             ],
             exclude: [ 'id', 'createdAt', 'updatedAt', 'gameId', 'GameId', 'StreamerId' ]
           },
@@ -99,14 +100,14 @@ module.exports = {
         'startedAt',
         'finishedAt',
         'duration',
-        [ sequelize.literal(`(SELECT MAX(count) FROM viewers WHERE streamId = Stream.id)`), 'maxViewers' ],
-        [ sequelize.literal(`(SELECT MAX(count) FROM followers WHERE streamId = Stream.id)`), 'maxFollowers' ],
-        [ sequelize.literal(`(SELECT AVG(count) FROM viewers WHERE streamId = Stream.id) / duration`), 'averageViewersPerHour' ],
-        [ sequelize.literal(`(SELECT AVG(count) FROM followers WHERE streamId = Stream.id) / duration`), 'averageFollowersPerHour' ],
-        [ sequelize.literal(`((SELECT count FROM followers WHERE streamId = 1 ORDER BY id DESC LIMIT 1) - 
-          (SELECT count FROM followers where streamId = 1 ORDER BY id LIMIT 1)) / duration`), 'followersGainPerHour' ],
-        [ sequelize.literal(`(SELECT AVG(count) FROM viewers WHERE streamId = Stream.id) * duration`), 'hoursWatched' ],
-        [ sequelize.literal(`(SELECT SUM(count) FROM viewers WHERE streamId = Stream.id) / duration`), 'averageConcurrentViewers' ]
+        [ sequelize.literal(`(SELECT MAX(count) FROM Viewers WHERE streamId = Stream.id)`), 'maxViewers' ],
+        [ sequelize.literal(`(SELECT MAX(count) FROM Followers WHERE streamId = Stream.id)`), 'maxFollowers' ],
+        [ sequelize.literal(`(SELECT AVG(count) FROM Viewers WHERE streamId = Stream.id) / duration`), 'averageViewersPerHour' ],
+        [ sequelize.literal(`(SELECT AVG(count) FROM Followers WHERE streamId = Stream.id) / duration`), 'averageFollowersPerHour' ],
+        [ sequelize.literal(`((SELECT count FROM Followers WHERE streamId = 1 ORDER BY id DESC LIMIT 1) - 
+          (SELECT count FROM Followers where streamId = 1 ORDER BY id LIMIT 1)) / duration`), 'followersGainPerHour' ],
+        [ sequelize.literal(`(SELECT AVG(count) FROM Viewers WHERE streamId = Stream.id) * duration`), 'hoursWatched' ],
+        [ sequelize.literal(`(SELECT SUM(count) FROM Viewers WHERE streamId = Stream.id) / duration`), 'averageConcurrentViewers' ]
       ],
       where: {
         id: id

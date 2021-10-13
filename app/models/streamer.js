@@ -40,7 +40,8 @@ module.exports = (sequelize, DataTypes) => {
     }
   }, {
     sequelize,
-    modelName: 'Streamer'
+    modelName: 'Streamer',
+    paranoid: true
   })
   return Streamer
 }

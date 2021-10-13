@@ -26,6 +26,10 @@ module.exports = {
 
     return Streamer.findByPk(id)
       .then(streamer => {
+        if (!streamer) {
+          return res.status(404).end()
+        }
+
         res.status(200).json(streamer)
       })
       .catch(error => {
@@ -45,11 +49,14 @@ module.exports = {
       include: [ {
         model: Stream,
         attributes: {
-          exclude: [ 'id', 'streamerId', 'gameId', 'duration', 'GameId', 'StreamerId', 'createdAt', 'updatedAt', 'startedAt', 'finishedAt' ] }
+          exclude: [ 'id', 'streamerId', 'gameId', 'duration', 'GameId', 'StreamerId', 'createdAt', 'updatedAt', 'startedAt', 'finishedAt', 'externalId' ] }
       }
       ]
     })
       .then(streamer => {
+        if (!streamer) {
+          return res.status(404).end()
+        }
         res.status(200).json(streamer)
       })
       .catch(error => {
@@ -69,7 +76,10 @@ module.exports = {
       limit: 1
     })
       .then(streamer => {
-        res.status(200).json(streamer)
+        if (!streamer) {
+          return res.status(404).end()
+        }
+        return res.status(200).json(streamer)
       })
       .catch(error => {
         res.status(500).json({ status: 500, message: error })
@@ -86,7 +96,7 @@ module.exports = {
       include: {
         model: Stream,
         attributes: {
-          exclude: [ 'id', 'streamerId', 'gameId', 'duration', 'GameId', 'StreamerId', 'createdAt', 'updatedAt', 'startedAt', 'finishedAt' ]
+          exclude: [ 'id', 'streamerId', 'gameId', 'duration', 'GameId', 'StreamerId', 'createdAt', 'updatedAt', 'startedAt', 'finishedAt', 'externalId' ]
         },
         where: {
           streamerId: id
@@ -116,6 +126,8 @@ module.exports = {
       dateFormat = '%Y-%m-%d'
     } else if (period === 'month') {
       dateFormat = '%Y-%m'
+    } else {
+      return res.status(400).json({ message: 'invalid period' })
     }
 
     return Viewer.findAll({
@@ -158,6 +170,8 @@ module.exports = {
       dateFormat = '%Y-%m-%d'
     } else if (period === 'month') {
       dateFormat = '%Y-%m'
+    } else {
+      return res.status(400).json({ message: 'invalid period' })
     }
 
     return Follower.findAll({
@@ -169,7 +183,7 @@ module.exports = {
       include: {
         model: Stream,
         attributes: {
-          exclude: [ 'id', 'streamerId', 'gameId', 'duration', 'GameId', 'StreamerId', 'createdAt', 'updatedAt', 'startedAt', 'finishedAt' ]
+          exclude: [ 'id', 'streamerId', 'gameId', 'duration', 'GameId', 'StreamerId', 'createdAt', 'updatedAt', 'startedAt', 'finishedAt', 'externalId' ]
         },
         include: {
           model: Streamer,
@@ -225,6 +239,8 @@ module.exports = {
       dateFormat = '%Y-%m-%d'
     } else if (period === 'month') {
       dateFormat = '%Y-%m'
+    } else {
+      return res.status(400).json({ message: 'invalid period' })
     }
 
     return Stream.findAll({
@@ -263,13 +279,13 @@ module.exports = {
     return Follower.findAll({
       attributes: [
         [ sequelize.fn('date_format', sequelize.col('Follower.createdAt'), dateFormat), 'date' ],
-        [ sequelize.fn('COALESCE', sequelize.fn('SUM', sequelize.col('count')), 0), 'total' ]
+        [ sequelize.fn('COALESCE', sequelize.fn('MAX', sequelize.col('count')), 0), 'total' ]
       ],
       group: [ [sequelize.fn('date_format', sequelize.col('Follower.createdAt'), dateFormat), 'date'] ],
       include: {
         model: Stream,
         attributes: {
-          exclude: [ 'id', 'streamerId', 'gameId', 'duration', 'GameId', 'StreamerId', 'createdAt', 'updatedAt', 'startedAt', 'finishedAt' ]
+          exclude: [ 'id', 'streamerId', 'gameId', 'duration', 'GameId', 'StreamerId', 'createdAt', 'updatedAt', 'startedAt', 'finishedAt', 'externalId' ]
         },
         where: {
           streamerId: id
@@ -329,8 +345,8 @@ module.exports = {
     return Stream.findAndCountAll({
       attributes: [
         'id',
-        [ sequelize.literal(`(SELECT MAX(count) FROM viewers WHERE streamId = id)`), 'maxViewers' ],
-        [ sequelize.literal(`(SELECT MAX(count) FROM followers WHERE streamId = id)`), 'maxFollowers' ],
+        [ sequelize.literal(`(SELECT MAX(count) FROM Viewers WHERE streamId = id)`), 'maxViewers' ],
+        [ sequelize.literal(`(SELECT MAX(count) FROM Followers WHERE streamId = id)`), 'maxFollowers' ],
         'duration',
         'startedAt',
         'finishedAt'
@@ -385,11 +401,9 @@ module.exports = {
       order: [ 'startedAt' ]
     })
       .then(streams => {
-        console.log(streams)
         res.status(200).json(streams)
       })
       .catch(error => {
-        console.log(error)
         res.status(500).json({ status: 500, message: error })
       })
   },
@@ -490,7 +504,7 @@ module.exports = {
         'streamerId',
         [ sequelize.literal(`Streamer.login`), 'login' ],
         [ sequelize.fn('MAX', sequelize.col('Followers.count')), 'followers' ],
-        [ sequelize.literal(`(SELECT AVG(count) FROM viewers WHERE streamId = streamerId ORDER BY id DESC LIMIT 10)`), 'averageViewers' ],
+        [ sequelize.literal(`(SELECT AVG(count) FROM Viewers WHERE streamId = streamerId ORDER BY id DESC LIMIT 10)`), 'averageViewers' ],
         [ sequelize.fn('MAX', sequelize.col('Viewers.count')), 'peakViewers' ],
         'duration',
         'startedAt',

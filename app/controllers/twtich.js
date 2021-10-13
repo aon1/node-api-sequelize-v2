@@ -30,16 +30,16 @@ module.exports = {
               streams.data.forEach(s => {
                 Game.findOne({
                   where: {
-                    name: s.gameName
+                    twitchId: s.gameId
                   }
                 }).then(game => {
                   Stream.findOrCreate({
                     where: {
-                      externalStreamId: s.id
+                      externalId: s.id
                     },
                     defaults: {
                       streamerId: streamersMap.get(s.userName).id,
-                      externalStreamId: s.id,
+                      externalId: s.id,
                       startedAt: s.startDate,
                       gameId: game.id
                     }
@@ -57,8 +57,6 @@ module.exports = {
                   })
                 })
               })
-
-              res.status(200).json([])
             })
             .catch(error => {
               res.status(500).json({ status: 500, message: error })
@@ -88,9 +86,10 @@ module.exports = {
       for (const game of games.data) {
         Game.findOrCreate({
           where: {
-            name: game.name
+            twitchId: game.id
           },
           defaults: {
+            twitchId: game.id,
             name: game.name,
             boxArtUrl: game.boxArtUrl
           }
@@ -108,5 +107,31 @@ module.exports = {
     } while (cursor !== undefined)
 
     res.status(200).json([])
+  },
+
+  async streamHasFinishedJob (req, res) {
+    Stream.findAll({
+      include: { model: Streamer, where: { site: 'twitch' } },
+      where: {
+        finishedAt: null
+      }
+    })
+      .then(async streams => {
+        const streamsMap = new Map(streams.map(i => [i.externalId, i]))
+        const userNames = []
+        streams.forEach(stream => userNames.push(stream.Streamer.login))
+        const twitchStreams = await twitchApi.getStreams({ userName: userNames })
+        console.log(twitchStreams)
+        for (const stream of twitchStreams.data) {
+          if (!streamsMap.get(stream.id)) {
+            console.log('essa stream nao veio ' + stream.userName)
+          } else {
+            console.log('essa stream veio ' + stream.userName)
+          }
+        }
+      })
+      .catch(error => {
+        console.log(error)
+      })
   }
 }

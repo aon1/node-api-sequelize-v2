@@ -17,6 +17,10 @@ module.exports = {
     return apiClient.streams.getStreams(filter)
   },
 
+  getStreamByUserId (userId) {
+    return apiClient.streams.getStreamByUserId(userId)
+  },
+
   getFollowers (filter) {
     return apiClient.users.getFollows(filter)
   }

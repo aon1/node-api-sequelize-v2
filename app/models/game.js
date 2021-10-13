@@ -19,6 +19,12 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false
     },
+    twitchId: {
+      type: DataTypes.STRING
+    },
+    youtubeId: {
+      type: DataTypes.STRING
+    },
     boxArtUrl: {
       type: DataTypes.STRING
     }
