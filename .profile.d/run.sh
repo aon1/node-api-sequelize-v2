@@ -18,7 +18,7 @@ chmod 600 ${HOME}/.ssh/heroku_id_rsa
 # Preload the known_hosts file  (see "version 2" below)
 
 # Start the SSH tunnel if not already running
-SSH_CMD="ssh -f -i ${HOME}/.ssh/heroku_id_rsa -N -L 3307:${MYSQL_HOST}:3306 ${SSH_USERNAME}@${SSH_HOST}"
+SSH_CMD="ssh -f -i ${HOME}/.ssh/heroku_id_rsa -N -L 3306:${MYSQL_HOST}:3306 ${SSH_USERNAME}@${SSH_HOST}"
 
 PID=`pgrep -f "${SSH_CMD}"`
 if [ $PID ] ; then
