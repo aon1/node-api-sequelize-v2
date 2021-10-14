@@ -23,10 +23,8 @@ module.exports = {
           await twitchApi.getStreams({ userName: userNames })
             .then(streams => {
               if (!streams) {
-                res.status(200).json([])
+                return res.status(200).json([])
               }
-
-              console.log(streams)
 
               streams.data.forEach(s => {
                 Game.findOne({
