@@ -4,9 +4,16 @@ const pagination = require('../services/pagination')
 
 module.exports = {
   index (req, res) {
-    return Stream.findAll()
+    const { page, size } = req.query
+    const { limit, offset } = pagination.getPagination(page, size)
+
+    return Stream.findAndCountAll({
+      limit: limit,
+      offset: offset
+    })
       .then(streams => {
-        res.status(200).json(streams)
+        const response = pagination.getPagingData(streams, page, limit)
+        res.status(200).json(response)
       })
       .catch(error => {
         res.status(500).json({ status: 500, message: error })
