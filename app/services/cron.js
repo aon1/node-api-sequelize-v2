@@ -2,9 +2,9 @@ const cron = require('node-cron')
 const controller = require('../controllers/twtich')
 
 module.exports = {
-  schedule (task) {
+  schedule () {
     cron.schedule('*/1 * * * *', () => {
-      controller.fetchStreams()
+      controller.fetchStreamsJob()
       // if (task === 'controller.fetchStreams') {
       //   controller.fetchStreams()
       // }
