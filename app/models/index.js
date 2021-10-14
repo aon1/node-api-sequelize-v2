@@ -25,7 +25,7 @@ if (process.env.NODE_ENV === 'local') {
     dstPort: config.sshDstPort, // database server port
     // localHost: '127.0.0.1', // local ip (will be use at env DATABASE_URL settings)
     // localPort: 3306, // local port make sure this port is not conflict with others port
-    privateKey: require('fs').readFileSync(config.sshPrivateKey), // your public key location
+    privateKey: config.sshPrivateKey, // your public key location
     keepAlive: true // option in the configuration !
   }
 
