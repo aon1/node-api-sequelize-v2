@@ -3,7 +3,7 @@ const controller = require('../controllers/twtich')
 
 module.exports = {
   schedule (task) {
-    cron.schedule('*/30 * * * *', () => {
+    cron.schedule('*/1 * * * *', () => {
       controller.fetchStreams()
       // if (task === 'controller.fetchStreams') {
       //   controller.fetchStreams()
