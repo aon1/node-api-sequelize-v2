@@ -1,6 +1,7 @@
 const { Streamer, Stream, Game, Viewer, Follower } = require('../models')
 const pagination = require('../services/pagination')
 const twitchApi = require('../services/twitch')
+const sequelize = require('sequelize')
 
 module.exports = {
   fetchStreamsJob (req, res) {
@@ -117,16 +118,27 @@ module.exports = {
       }
     })
       .then(async streams => {
-        const streamsMap = new Map(streams.map(i => [i.externalId, i]))
+        // const streamsMap = new Map(streams.map(i => [i.externalId, i]))
         const userNames = []
         streams.forEach(stream => userNames.push(stream.Streamer.login))
+
         const twitchStreams = await twitchApi.getStreams({ userName: userNames })
-        console.log(twitchStreams)
-        for (const stream of twitchStreams.data) {
-          if (!streamsMap.get(stream.id)) {
-            console.log('essa stream nao veio ' + stream.userName)
+        const twitchStreamsMap = new Map(twitchStreams.data.map(i => [i.id, i]))
+
+        for (const stream of streams) {
+          if (!twitchStreamsMap.get(stream.externalId)) {
+            console.log('essa stream nao veio ' + stream.Streamer.login)
+            Stream.update({
+              finishedAt: sequelize.fn('NOW'),
+              duration: sequelize.literal(`((SELECT UNIX_TIMESTAMP(NOW()) - UNIX_TIMESTAMP(startedAt))/3600)`)
+            }, {
+              where: {
+                id: stream.id
+              },
+              individualHooks: true
+            })
           } else {
-            console.log('essa stream veio ' + stream.userName)
+            console.log('essa stream veio ' + stream.Streamer.login)
           }
         }
       })
