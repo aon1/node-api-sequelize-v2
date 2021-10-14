@@ -34,9 +34,9 @@ if (process.env.NODE_ENV === 'local') {
       console.error(error)
     } else {
       sequelize.authenticate().then(() => {
-        console.log('connection established')
+        console.log('Database connection established')
       }).catch(function (err) {
-        console.error('unable establish connection', err)
+        console.error('Unable establish database connection', err)
       })
     }
   })
