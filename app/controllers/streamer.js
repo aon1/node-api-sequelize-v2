@@ -515,7 +515,7 @@ module.exports = {
         { model: Follower, attributes: { exclude: [ 'id', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt' ] } },
         { model: Streamer,
           attributes: {
-            exclude: [ 'id', 'externalId', 'login', 'email', 'name', 'thumbnail', 'site', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt' ]
+            exclude: [ 'id', 'externalId', 'login', 'name', 'thumbnail', 'site', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt' ]
           }
         }
       ],

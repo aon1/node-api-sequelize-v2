@@ -7,7 +7,6 @@ module.exports = {
         id: 1,
         externalId: '254489093222',
         login: 'newstreamer',
-        email: 'newstreamer@newstreamer.com',
         name: 'newstreamer',
         site: 'twitch'
       }

@@ -16,12 +16,6 @@ module.exports = {
       login: {
         type: Sequelize.STRING
       },
-      email: {
-        type: Sequelize.STRING,
-        validate: {
-          isEmail: true
-        }
-      },
       name: {
         type: Sequelize.STRING
       },
