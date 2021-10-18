@@ -1,102 +1,7 @@
-const { Stream, Streamer, Game, Viewer, Follower } = require('../models')
+const { Stream, Game, Viewer, Follower } = require('../models')
 const sequelize = require('sequelize')
-const pagination = require('../services/pagination')
 
 module.exports = {
-  index (req, res) {
-    const { page, size } = req.query
-    const { limit, offset } = pagination.getPagination(page, size)
-
-    return Stream.findAndCountAll({
-      limit: limit,
-      offset: offset
-    })
-      .then(streams => {
-        const response = pagination.getPagingData(streams, page, limit)
-        res.status(200).json(response)
-      })
-      .catch(error => {
-        res.status(500).json({ status: 500, message: error })
-      })
-  },
-
-  findByStreamerId (req, res) {
-    const streamerId = req.params.streamerId
-
-    return Stream.findAll({
-      attributes: [ 'gameId', 'startedAt', 'finishedAt', 'duration' ],
-      where: {
-        streamerId: streamerId
-      }
-    })
-      .then(stream => {
-        res.status(200).json(stream)
-      })
-      .catch(error => {
-        res.status(500).json({ status: 500, message: error })
-      })
-  },
-
-  findByGameId (req, res) {
-    const gameId = req.params.gameId
-
-    return Stream.findAll({
-      attributes: [ 'streamerId', 'startedAt', 'finishedAt', 'duration' ],
-      where: {
-        gameId: gameId
-      },
-      include: [
-        { model: Streamer, attributes: { exclude: [ 'id', 'createdAt', 'updatedAt' ] } },
-        { model: Viewer, attributes: { exclude: [ 'id', 'createdAt', 'updatedAt' ] } },
-        { model: Follower, attributes: { exclude: [ 'id', 'createdAt', 'updatedAt' ] } }
-      ]
-    })
-      .then(stream => {
-        res.status(200).json(stream)
-      })
-      .catch(error => {
-        res.status(500).json({ status: 500, message: error })
-      })
-  },
-
-  fetchStreamByGames (req, res) {
-    const { page, size } = req.query
-    const { limit, offset } = pagination.getPagination(page, size)
-
-    return Game.findAndCountAll({
-      subQuery: false,
-      attributes: { exclude: [ 'createdAt', 'updatedAt' ] },
-      include: [
-        { model: Stream,
-          // required: true,
-          attributes: {
-            include: [
-              [ sequelize.literal(`(SELECT AVG(count) FROM Viewers WHERE streamId = Streams.id) / duration`), 'averageViewersPerHour' ],
-              [ sequelize.literal(`(SELECT AVG(count) FROM Followers WHERE streamId = Streams.id) / duration`), 'averageFollowersPerHour' ],
-              [ sequelize.literal(`(SELECT MAX(count) FROM Viewers WHERE streamId = Streams.id)`), 'maxViewers' ],
-              [ sequelize.literal(`(SELECT MAX(count) FROM Followers WHERE streamId = Streams.id)`), 'maxFollowers' ]
-            ],
-            exclude: [ 'id', 'createdAt', 'updatedAt', 'gameId', 'GameId', 'StreamerId' ]
-          },
-          include: [
-            { model: Streamer, attributes: { exclude: [ 'id', 'createdAt', 'updatedAt' ] } },
-            { model: Viewer, attributes: { exclude: [ 'id', 'count', 'createdAt', 'updatedAt', 'StreamId', 'streamId' ] } },
-            { model: Follower, attributes: { exclude: [ 'id', 'count', 'createdAt', 'updatedAt', 'StreamId', 'streamId' ] } }
-          ]
-        }
-      ],
-      group: [ 'id' ],
-      limit: limit,
-      offset: offset
-    })
-      .then(streams => {
-        const response = pagination.getPagingDataAggregated(streams, page, limit)
-        res.status(200).json(response)
-      })
-      .catch(error => {
-        res.status(500).json({ status: 500, message: error })
-      })
-  },
 
   async fetchStreamDetails (req, res) {
     const id = req.params.id
@@ -111,8 +16,8 @@ module.exports = {
         [ sequelize.literal(`(SELECT MAX(count) FROM Followers WHERE streamId = Stream.id)`), 'maxFollowers' ],
         [ sequelize.literal(`(SELECT AVG(count) FROM Viewers WHERE streamId = Stream.id) / duration`), 'averageViewersPerHour' ],
         [ sequelize.literal(`(SELECT AVG(count) FROM Followers WHERE streamId = Stream.id) / duration`), 'averageFollowersPerHour' ],
-        [ sequelize.literal(`((SELECT count FROM Followers WHERE streamId = 1 ORDER BY id DESC LIMIT 1) - 
-          (SELECT count FROM Followers where streamId = 1 ORDER BY id LIMIT 1)) / duration`), 'followersGainPerHour' ],
+        [ sequelize.literal(`((SELECT count FROM Followers WHERE streamId = Stream.id ORDER BY id DESC LIMIT 1) - 
+          (SELECT count FROM Followers where streamId = Stream.id ORDER BY id LIMIT 1)) / duration`), 'followersGainPerHour' ],
         [ sequelize.literal(`(SELECT AVG(count) FROM Viewers WHERE streamId = Stream.id) * duration`), 'hoursWatched' ],
         [ sequelize.literal(`(SELECT SUM(count) FROM Viewers WHERE streamId = Stream.id) / duration`), 'averageConcurrentViewers' ]
       ],
