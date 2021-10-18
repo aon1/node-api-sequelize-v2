@@ -5,10 +5,13 @@ const { Op } = require('sequelize')
 
 module.exports = {
   index (req, res) {
-    const { page, size } = req.query
+    const { site, page, size } = req.query
     const { limit, offset } = pagination.getPagination(page, size)
 
     return Streamer.findAndCountAll({
+      where: {
+        site: site
+      },
       limit: limit,
       offset: offset
     })
