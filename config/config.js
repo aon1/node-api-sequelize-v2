@@ -16,6 +16,7 @@ module.exports = {
   MYSQL_DATABASE: process.env.MYSQL_DATABASE,
   TWITCH_CLIENT_ID: process.env.TWITCH_CLIENT_ID,
   TWITCH_ACCESS_TOKEN: process.env.TWITCH_ACCESS_TOKEN,
+  TWITCH_CLIENT_SECRET: process.env.TWITCH_CLIENT_SECRET,
   SSH_USERNAME: process.env.SSH_USERNAME,
   SSH_HOST: process.env.SSH_HOST,
   SSH_PORT: process.env.SSH_PORT,
