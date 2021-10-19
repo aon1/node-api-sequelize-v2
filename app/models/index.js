@@ -5,6 +5,8 @@ const tunnel = require('tunnel-ssh')
 
 const config = require('../../config/database.js')
 
+const { logger } = require('../services/logger')
+
 const db = {}
 let sequelize = null
 
@@ -31,18 +33,18 @@ if (process.env.NODE_ENV === 'local') {
 
   const server = tunnel(tunnelConfig, function (error, server) {
     if (error) {
-      console.error(error)
+      logger.error(error)
     } else {
       sequelize.authenticate().then(() => {
-        console.log('Database connection established')
+        logger.info('Database connection established')
       }).catch(function (err) {
-        console.error('Unable establish database connection', err)
+        logger.error('Unable establish database connection', err)
       })
     }
   })
 
   server.on('error', function (err) {
-    console.error('unable establish server', err)
+    logger.error('unable establish server', err)
   })
 }
 

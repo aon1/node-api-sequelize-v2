@@ -1,7 +1,7 @@
-const { Streamer, Stream, Game, Viewer, Follower } = require('../models')
-const youtubeApi = require('../services/youtube')
 const sequelize = require('sequelize')
-const twitchApi = require('../services/twitch')
+const youtubeApi = require('../services/youtube')
+const { Streamer, Stream, Viewer, Follower } = require('../models')
+const { logger } = require('../services/logger')
 
 module.exports = {
   async fetchStreamsJob (req, res) {
@@ -18,11 +18,6 @@ module.exports = {
         const streams = await youtubeApi.getStreams(streamer.externalId)
 
         for (const st of streams.data.items) {
-          console.log('#######')
-          console.log(streamer.name)
-          console.log(st.id.videoId)
-          console.log('#######')
-
           const videoDetails = (await youtubeApi.getVideoDetails(st.id.videoId)).data.items[0]
           if (videoDetails.snippet.categoryId !== '20') {
             break
@@ -46,9 +41,6 @@ module.exports = {
           })
 
           const statistics = (await youtubeApi.getChannelStatistics(streamer.externalId)).data.items[0].statistics
-          console.log('###### statistics')
-          console.log(statistics)
-          console.log('######')
 
           if (!statistics.hiddenSubscriberCount) {
             Follower.create({
@@ -59,6 +51,7 @@ module.exports = {
         }
       }
     } catch (error) {
+      lo
       return res.status(error.code).json({ message: error.errors })
     }
   },
@@ -75,7 +68,6 @@ module.exports = {
       for (const stream of streams) {
         const videoDetails = (await youtubeApi.getVideoDetails(stream.externalId)).data.items[0]
         if (videoDetails.liveStreamingDetails.actualEndTime) {
-          console.log('essa stream terminou ' + stream.externalId)
           await Stream.update({
             finishedAt: videoDetails.liveStreamingDetails.actualEndTime,
             duration: sequelize.literal(`((UNIX_TIMESTAMP(finishedAt) - UNIX_TIMESTAMP(startedAt))/3600)`)
@@ -97,10 +89,6 @@ module.exports = {
         })
 
         const statistics = (await youtubeApi.getChannelStatistics(stream.Streamer.externalId)).data.items[0].statistics
-        // console.log('###### statistics')
-        // console.log(statistics)
-        // console.log('######')
-
         if (!statistics.hiddenSubscriberCount) {
           Follower.create({
             streamId: stream.id,
@@ -109,77 +97,7 @@ module.exports = {
         }
       }
     } catch (error) {
-      console.log(error)
-      return res.status(error.code).json({ message: error.errors })
+      throw error
     }
-  },
-
-  async fetchTopGamesJob (req, res) {
-    let filter = { limit: 100 }
-    let cursor = null
-
-    do {
-      const games = await twitchApi.getTopGames(filter)
-      for (const game of games.data) {
-        Game.findOrCreate({
-          where: {
-            twitchId: game.id
-          },
-          defaults: {
-            twitchId: game.id,
-            name: game.name,
-            boxArtUrl: game.boxArtUrl
-          }
-        }).then(created => {
-          // console.log(created)
-        })
-      }
-
-      cursor = games.cursor
-      if (cursor) {
-        filter['after'] = cursor
-      }
-
-      await new Promise(resolve => setTimeout(resolve, 5000))
-    } while (cursor !== undefined)
-
-    res.status(200).json([])
-  },
-
-  async streamHasFinishedJob (req, res) {
-    Stream.findAll({
-      include: { model: Streamer, where: { site: 'twitch' } },
-      where: {
-        finishedAt: null
-      }
-    })
-      .then(async streams => {
-        // const streamsMap = new Map(streams.map(i => [i.externalId, i]))
-        const userNames = []
-        streams.forEach(stream => userNames.push(stream.Streamer.login))
-
-        const twitchStreams = await twitchApi.getStreams({ userName: userNames })
-        const twitchStreamsMap = new Map(twitchStreams.data.map(i => [i.id, i]))
-
-        for (const stream of streams) {
-          if (!twitchStreamsMap.get(stream.externalId)) {
-            console.log('essa stream nao veio ' + stream.Streamer.login)
-            Stream.update({
-              finishedAt: sequelize.fn('NOW'),
-              duration: sequelize.literal(`((SELECT UNIX_TIMESTAMP(NOW()) - UNIX_TIMESTAMP(startedAt))/3600)`)
-            }, {
-              where: {
-                id: stream.id
-              },
-              individualHooks: true
-            })
-          } else {
-            console.log('essa stream veio ' + stream.Streamer.login)
-          }
-        }
-      })
-      .catch(error => {
-        console.log(error)
-      })
   }
 }

@@ -1,6 +1,7 @@
-const { Streamer, Stream, Game, Viewer, Follower } = require('../models')
-const twitchApi = require('../services/twitch')
 const sequelize = require('sequelize')
+const twitchApi = require('../services/twitch')
+const { Streamer, Stream, Game, Viewer, Follower } = require('../models')
+const { logger } = require('../services/logger')
 
 module.exports = {
   async fetchStreamsJob (req, res) {
@@ -9,7 +10,7 @@ module.exports = {
     let offset = 0
     let batchSize = 100
 
-    console.log('fetchStreamsJob started')
+    logger.info('fetchStreamsJob started')
     try {
       do {
         const streamers = await Streamer.findAll({
@@ -23,10 +24,6 @@ module.exports = {
         if (streamers.length === 0) {
           break
         }
-
-        console.log('offset')
-        console.log(offset)
-        console.log('offset')
 
         const streamersMap = new Map(streamers.map(i => [i.login, i]))
         const userNames = []
@@ -74,7 +71,7 @@ module.exports = {
         } while (cursor !== undefined)
         offset += batchSize
       } while (true)
-      console.log('fetchStreamsJob finished')
+      logger.info('fetchStreamsJob finished')
     } catch (error) {
       throw error
     }
@@ -84,7 +81,7 @@ module.exports = {
     let filter = { limit: 100 }
     let cursor = null
 
-    console.log('fetchTopGamesJob started')
+    logger.info('fetchTopGamesJob started')
     try {
       do {
         const games = await twitchApi.getTopGames(filter)
@@ -112,11 +109,11 @@ module.exports = {
       throw error
     }
 
-    console.log('fetchTopGamesJob finished')
+    logger.info('fetchTopGamesJob finished')
   },
 
   async streamHasFinishedJob (req, res) {
-    console.log('streamHasFinishedJob started')
+    logger.info('streamHasFinishedJob started')
     try {
       const streams = await Stream.findAll({
         include: { model: Streamer, where: { site: 'twitch' } },
@@ -133,7 +130,7 @@ module.exports = {
 
       for (const stream of streams) {
         if (!twitchStreamsMap.get(stream.externalId)) {
-          console.log('Stream has finished ' + stream.Streamer.login)
+          logger.info('Stream has finished ' + stream.Streamer.login)
           Stream.update({
             finishedAt: sequelize.fn('NOW'),
             duration: sequelize.literal(`((SELECT UNIX_TIMESTAMP(NOW()) - UNIX_TIMESTAMP(startedAt))/3600)`)
@@ -149,6 +146,6 @@ module.exports = {
       throw error
     }
 
-    console.log('streamHasFinishedJob finished')
+    logger.info('streamHasFinishedJob finished')
   }
 }

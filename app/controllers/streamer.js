@@ -2,6 +2,7 @@ const { Streamer, Follower, Stream, Game, Viewer } = require('../models')
 const pagination = require('../services/pagination')
 const sequelize = require('sequelize')
 const { Op } = require('sequelize')
+const { logger } = require('../services/logger')
 
 module.exports = {
   index (req, res) {
@@ -548,7 +549,7 @@ module.exports = {
         })
       })
       .catch(error => {
-        console.error('Error on creating streamer', error)
+        logger.error('Error on creating streamer', error)
         res.status(500).json({ message: 'Error on creating streamer' })
       })
   },
@@ -562,7 +563,7 @@ module.exports = {
         res.status(200).json({ status: 200, message: 'Streamer updated' })
       })
       .catch(error => {
-        console.error('Error on updating streamer', error)
+        logger.error('Error on updating streamer', error)
         res
           .status(500)
           .json({ status: 500, message: 'Error on updating streamer' })
@@ -587,7 +588,7 @@ module.exports = {
         }
       })
       .catch(error => {
-        console.error('Error on deleting streamer', error)
+        logger.error('Error on deleting streamer', error)
         res
           .status(500)
           .json({ status: 500, message: 'Error on deleting streamer' })
