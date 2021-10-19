@@ -1,65 +1,69 @@
 const { Streamer, Stream, Game, Viewer, Follower } = require('../models')
-const pagination = require('../services/pagination')
 const twitchApi = require('../services/twitch')
 const sequelize = require('sequelize')
 
 module.exports = {
-  fetchStreamsJob (req, res) {
+  async fetchStreamsJob (req, res) {
     let filter = { limit: 100 }
     let cursor = null
+    let offset = 0
+    let batchSize = 100
 
-    Streamer.findAll({
-      where: {
-        site: 'twitch'
-      },
-      limit: 100
-    })
-      .then(async streamers => {
+    console.log('fetchStreamsJob started')
+    try {
+      do {
+        const streamers = await Streamer.findAll({
+          where: {
+            site: 'twitch'
+          },
+          limit: 100,
+          offset: offset
+        })
+
+        if (streamers.length === 0) {
+          break
+        }
+
+        console.log('offset')
+        console.log(offset)
+        console.log('offset')
+
         const streamersMap = new Map(streamers.map(i => [i.login, i]))
         const userNames = []
         streamers.forEach(streamer => userNames.push(streamer.login))
 
         do {
-          await twitchApi.getStreams({ userName: userNames })
-            .then(streams => {
-              if (!streams) {
-                return res.status(200).json([])
+          const streams = await twitchApi.getStreams({ userName: userNames })
+          for (const s of streams.data) {
+            const game = await Game.findOne({
+              where: {
+                twitchId: s.gameId
               }
-
-              streams.data.forEach(s => {
-                Game.findOne({
-                  where: {
-                    twitchId: s.gameId
-                  }
-                }).then(game => {
-                  Stream.findOrCreate({
-                    where: {
-                      externalId: s.id
-                    },
-                    defaults: {
-                      streamerId: streamersMap.get(s.userName).id,
-                      externalId: s.id,
-                      startedAt: s.startDate,
-                      gameId: game.id
-                    }
-                  }).then(async created => {
-                    Viewer.create({
-                      streamId: created[0].id,
-                      count: s.viewers
-                    })
-
-                    const followers = await twitchApi.getFollowers({ followedUser: streamersMap.get(s.userName).externalId })
-                    Follower.create({
-                      streamId: created[0].id,
-                      count: followers.total
-                    })
-                  })
-                })
-              })
             })
-            .catch(error => {
-              res.status(500).json({ status: 500, message: error })
+
+            const created = await Stream.findOrCreate({
+              where: {
+                externalId: s.id
+              },
+              defaults: {
+                streamerId: streamersMap.get(s.userName).id,
+                externalId: s.id,
+                startedAt: s.startDate,
+                gameId: game.id
+              }
             })
+
+            Viewer.create({
+              streamId: created[0].id,
+              count: s.viewers
+            })
+
+            const followers = await twitchApi.getFollowers({ followedUser: streamersMap.get(s.userName).externalId })
+            Follower.create({
+              streamId: created[0].id,
+              count: followers.total
+            })
+          }
 
           cursor = streamers.cursor
           if (cursor) {
@@ -68,80 +72,83 @@ module.exports = {
 
           await new Promise(resolve => setTimeout(resolve, 5000))
         } while (cursor !== undefined)
-      })
-      .catch(error => {
-        console.log(error)
-      })
-
-    res.status(200).json([])
+        offset += batchSize
+      } while (true)
+      console.log('fetchStreamsJob finished')
+    } catch (error) {
+      throw error
+    }
   },
 
   async fetchTopGamesJob (req, res) {
     let filter = { limit: 100 }
     let cursor = null
 
-    do {
-      const games = await twitchApi.getTopGames(filter)
-      for (const game of games.data) {
-        Game.findOrCreate({
-          where: {
-            twitchId: game.id
-          },
-          defaults: {
-            twitchId: game.id,
-            name: game.name,
-            boxArtUrl: game.boxArtUrl
-          }
-        }).then(created => {
-          // console.log(created)
-        })
-      }
+    console.log('fetchTopGamesJob started')
+    try {
+      do {
+        const games = await twitchApi.getTopGames(filter)
+        for (const game of games.data) {
+          await Game.findOrCreate({
+            where: {
+              twitchId: game.id
+            },
+            defaults: {
+              twitchId: game.id,
+              name: game.name,
+              boxArtUrl: game.boxArtUrl
+            }
+          })
+        }
 
-      cursor = games.cursor
-      if (cursor) {
-        filter['after'] = cursor
-      }
+        cursor = games.cursor
+        if (cursor) {
+          filter['after'] = cursor
+        }
 
-      await new Promise(resolve => setTimeout(resolve, 5000))
-    } while (cursor !== undefined)
+        await new Promise(resolve => setTimeout(resolve, 5000))
+      } while (cursor !== undefined)
+    } catch (error) {
+      throw error
+    }
 
-    res.status(200).json([])
+    console.log('fetchTopGamesJob finished')
   },
 
   async streamHasFinishedJob (req, res) {
-    Stream.findAll({
-      include: { model: Streamer, where: { site: 'twitch' } },
-      where: {
-        finishedAt: null
-      }
-    })
-      .then(async streams => {
-        // const streamsMap = new Map(streams.map(i => [i.externalId, i]))
-        const userNames = []
-        streams.forEach(stream => userNames.push(stream.Streamer.login))
-
-        const twitchStreams = await twitchApi.getStreams({ userName: userNames })
-        const twitchStreamsMap = new Map(twitchStreams.data.map(i => [i.id, i]))
-
-        for (const stream of streams) {
-          if (!twitchStreamsMap.get(stream.externalId)) {
-            console.log('essa stream nao veio ' + stream.Streamer.login)
-            Stream.update({
-              finishedAt: sequelize.fn('NOW'),
-              duration: sequelize.literal(`((SELECT UNIX_TIMESTAMP(NOW()) - UNIX_TIMESTAMP(startedAt))/3600)`)
-            }, {
-              where: {
-                id: stream.id
-              },
-              individualHooks: true
-            })
-          } else {
-            console.log('essa stream veio ' + stream.Streamer.login)
-          }
+    console.log('streamHasFinishedJob started')
+    try {
+      const streams = await Stream.findAll({
+        include: { model: Streamer, where: { site: 'twitch' } },
+        where: {
+          finishedAt: null
         }
       })
-      .catch(error => {
-        console.log(error)
-      })
+
+      const userNames = []
+      streams.forEach(stream => userNames.push(stream.Streamer.login))
+
+      const twitchStreams = await twitchApi.getStreams({ userName: userNames })
+      const twitchStreamsMap = new Map(twitchStreams.data.map(i => [i.id, i]))
+
+      for (const stream of streams) {
+        if (!twitchStreamsMap.get(stream.externalId)) {
+          console.log('Stream has finished ' + stream.Streamer.login)
+          Stream.update({
+            finishedAt: sequelize.fn('NOW'),
+            duration: sequelize.literal(`((SELECT UNIX_TIMESTAMP(NOW()) - UNIX_TIMESTAMP(startedAt))/3600)`)
+          }, {
+            where: {
+              id: stream.id
+            },
+            individualHooks: true
+          })
+        }
+      }
+    } catch (error) {
+      throw error
+    }
+
+    console.log('streamHasFinishedJob finished')
   }
 }
