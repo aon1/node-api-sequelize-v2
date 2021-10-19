@@ -38,6 +38,12 @@ const foo = require('./foo');
 router.use('/foo', foo);
 ```
 
+#### Env file
+
+On config folder, create an env file according to your dev environment 
+and fill in with proper values. 
+You can find an example on env-file-example.env 
+
 #### Run project
 ```
 docker-compose up
