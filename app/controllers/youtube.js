@@ -51,7 +51,7 @@ module.exports = {
         }
       }
     } catch (error) {
-      lo
+      logger.error(error)
       return res.status(error.code).json({ message: error.errors })
     }
   },
