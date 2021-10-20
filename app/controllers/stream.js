@@ -38,6 +38,31 @@ module.exports = {
       })
   },
 
+  async moreInformation (req, res) {
+    const id = req.params.id
+
+    return Stream.findAll({
+      attributes: [
+        [ sequelize.literal(`(SELECT AVG(count) FROM Viewers WHERE streamId = Stream.id) / (duration * 60)`), 'viewersPerMinute' ],
+        [ sequelize.literal(`((SELECT AVG(count) FROM Viewers WHERE streamId = Stream.id) / 
+          (SELECT AVG(count) FROM Followers WHERE streamId = Stream.id))`), 'viewerSubscriberRatio' ],
+        [ sequelize.literal(`(SELECT MAX(count) FROM Viewers WHERE streamId = Stream.id) / (duration * 60)`), 'peakViewers' ]
+      ],
+      where: {
+        id: id
+      },
+      include: [
+        { model: Game, attributes: { exclude: [ 'createdAt', 'updatedAt' ] } }
+      ]
+    })
+      .then(stream => {
+        res.status(200).json(stream)
+      })
+      .catch(error => {
+        res.status(500).json({ status: 500, message: error })
+      })
+  },
+
   async create (req, res) {
     const data = req.body
 
