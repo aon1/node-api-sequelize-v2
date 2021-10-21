@@ -6,7 +6,7 @@ dotenv.config({
 })
 
 module.exports = {
-  NODE_ENV: process.env.NODE_ENV || 'development',
+  NODE_ENV: process.env.NODE_ENV,
   HOST: process.env.HOST || 'localhost',
   PORT: process.env.PORT || 3000,
   MYSQL_USERNAME: process.env.MYSQL_USERNAME,
