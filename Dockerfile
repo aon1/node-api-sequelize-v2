@@ -8,7 +8,7 @@ FROM base as production
 ENV NODE_ENV=production
 RUN npm ci
 COPY . ./
-CMD ["npm", "run-prod"]
+CMD ["npm", "run", "prod"]
 
 FROM base as dev
 ENV NODE_ENV=development
