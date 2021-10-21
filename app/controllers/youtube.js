@@ -31,7 +31,7 @@ module.exports = {
               streamerId: streamersMap.get(st.snippet.channelId).id,
               externalId: st.id.videoId,
               startedAt: videoDetails.liveStreamingDetails.actualStartTime,
-              gameId: 1
+              gameId: 4625
             }
           })
 
