@@ -137,16 +137,16 @@ module.exports = {
       return res.status(400).json({ message: 'invalid period' })
     }
 
-    return Viewer.findAll({
+    return Viewer.findAndCountAll({
       attributes: [
         [ sequelize.fn('date_format', sequelize.col('createdAt'), dateFormat), 'date' ],
-        [ sequelize.fn('COALESCE', sequelize.fn('AVG', sequelize.col('count')), 0), 'average' ]
+        [ sequelize.fn('COALESCE', sequelize.fn('AVG', sequelize.col('count')), 0), 'count' ]
       ],
-      group: [ [sequelize.fn('date_format', sequelize.col('createdAt'), dateFormat), 'date'] ],
+      group: [ [sequelize.fn('date_format', sequelize.col('createdAt'), dateFormat), 'createdAt'] ],
       include: {
         model: Stream,
         attributes: {
-          include: []
+          exclude: [ 'id', 'streamerId', 'gameId', 'duration', 'GameId', 'StreamerId', 'createdAt', 'updatedAt', 'startedAt', 'finishedAt', 'externalId' ]
         },
         where: {
           streamerId: id
@@ -156,10 +156,11 @@ module.exports = {
       offset: offset
     })
       .then(averageViewers => {
-        const response = pagination.getPagingData(averageViewers, page, limit)
+        const response = pagination.getPagingDataAggregated(averageViewers, page, limit)
         res.status(200).json(response)
       })
       .catch(error => {
+        console.log(error)
         res.status(500).json({ status: 500, message: error })
       })
   },
@@ -167,6 +168,8 @@ module.exports = {
   fetchAverageFollowersByPeriod (req, res) {
     const id = req.params.id
     const period = req.params.period
+    const { page, size } = req.query
+    const { limit, offset } = pagination.getPagination(page, size)
 
     let dateFormat = ''
     if (period === 'minute') {
@@ -181,27 +184,27 @@ module.exports = {
       return res.status(400).json({ message: 'invalid period' })
     }
 
-    return Follower.findAll({
+    return Follower.findAndCountAll({
       attributes: [
         [ sequelize.fn('date_format', sequelize.col('Follower.createdAt'), dateFormat), 'date' ],
-        [ sequelize.fn('COALESCE', sequelize.fn('AVG', sequelize.col('count')), 0), 'average' ]
+        [ sequelize.fn('COALESCE', sequelize.fn('AVG', sequelize.col('count')), 0), 'count' ]
       ],
-      group: [ [sequelize.fn('date_format', sequelize.col('Follower.createdAt'), dateFormat), 'date'] ],
+      group: [ [sequelize.fn('date_format', sequelize.col('Follower.createdAt'), dateFormat), 'createdAt'] ],
       include: {
         model: Stream,
         attributes: {
           exclude: [ 'id', 'streamerId', 'gameId', 'duration', 'GameId', 'StreamerId', 'createdAt', 'updatedAt', 'startedAt', 'finishedAt', 'externalId' ]
         },
-        include: {
-          model: Streamer,
-          where: {
-            id: id
-          }
+        where: {
+          streamerId: id
         }
-      }
+      },
+      limit: limit,
+      offset: offset
     })
-      .then(averageViewers => {
-        res.status(200).json(averageViewers)
+      .then(averageFollowers => {
+        const response = pagination.getPagingDataAggregated(averageFollowers, page, limit)
+        res.status(200).json(response)
       })
       .catch(error => {
         res.status(500).json({ status: 500, message: error })
@@ -240,6 +243,8 @@ module.exports = {
   fetchHoursStreamedByPeriod (req, res) {
     const id = req.params.id
     const period = req.params.period
+    const { page, size } = req.query
+    const { limit, offset } = pagination.getPagination(page, size)
 
     let dateFormat = ''
     if (period === 'day') {
@@ -250,18 +255,21 @@ module.exports = {
       return res.status(400).json({ message: 'invalid period' })
     }
 
-    return Stream.findAll({
+    return Stream.findAndCountAll({
       attributes: [
         [ sequelize.fn('date_format', sequelize.col('startedAt'), dateFormat), 'date' ],
-        [ sequelize.fn('COALESCE', sequelize.fn('SUM', sequelize.col('duration')), 0), 'total' ]
+        [ sequelize.fn('COALESCE', sequelize.fn('SUM', sequelize.col('duration')), 0), 'duration' ]
       ],
       where: {
         streamerId: id
       },
-      group: [ [sequelize.fn('date_format', sequelize.col('startedAt'), dateFormat), 'date'] ]
+      group: [ [sequelize.fn('date_format', sequelize.col('startedAt'), dateFormat), 'startedAt'] ],
+      limit: limit,
+      offset: offset
     })
-      .then(averageViewers => {
-        res.status(200).json(averageViewers)
+      .then(hoursStreamed => {
+        const response = pagination.getPagingDataAggregated(hoursStreamed, page, limit)
+        res.status(200).json(response)
       })
       .catch(error => {
         res.status(500).json({ status: 500, message: error })
@@ -271,6 +279,8 @@ module.exports = {
   fetchFollowersByPeriod (req, res) {
     const id = req.params.id
     const period = req.params.period
+    const { page, size } = req.query
+    const { limit, offset } = pagination.getPagination(page, size)
 
     let dateFormat = ''
     if (period === 'minute') {
@@ -283,12 +293,12 @@ module.exports = {
       dateFormat = '%Y-%m'
     }
 
-    return Follower.findAll({
+    return Follower.findAndCountAll({
       attributes: [
         [ sequelize.fn('date_format', sequelize.col('Follower.createdAt'), dateFormat), 'date' ],
         [ sequelize.fn('COALESCE', sequelize.fn('MAX', sequelize.col('count')), 0), 'total' ]
       ],
-      group: [ [sequelize.fn('date_format', sequelize.col('Follower.createdAt'), dateFormat), 'date'] ],
+      group: [ [sequelize.fn('date_format', sequelize.col('Follower.createdAt'), dateFormat), 'createdAt'] ],
       include: {
         model: Stream,
         attributes: {
@@ -297,10 +307,13 @@ module.exports = {
         where: {
           streamerId: id
         }
-      }
+      },
+      limit: limit,
+      offset: offset
     })
-      .then(averageViewers => {
-        res.status(200).json(averageViewers)
+      .then(followersByPeriod => {
+        const response = pagination.getPagingDataAggregated(followersByPeriod, page, limit)
+        res.status(200).json(response)
       })
       .catch(error => {
         res.status(500).json({ status: 500, message: error })
@@ -383,10 +396,12 @@ module.exports = {
     const id = req.params.id
     const startedAt = req.params.startDate
     const finishedAt = req.params.endDate
+    const { page, size } = req.query
+    const { limit, offset } = pagination.getPagination(page, size)
 
     const dateFormat = '%Y-%m-%d'
 
-    return Stream.findAll({
+    return Stream.findAndCountAll({
       attributes: [
         [ sequelize.fn('date_format', sequelize.col('startedAt'), dateFormat), 'date' ],
         [ sequelize.fn('COALESCE', sequelize.fn('COUNT', sequelize.col('*')), 0), 'count' ]
@@ -405,10 +420,13 @@ module.exports = {
       },
       group: [ sequelize.fn('date_format', sequelize.col('startedAt'), dateFormat) ],
       distinct: true,
-      order: [ 'startedAt' ]
+      order: [ 'startedAt' ],
+      limit: limit,
+      offset: offset
     })
       .then(streams => {
-        res.status(200).json(streams)
+        const response = pagination.getPagingDataAggregated(streams, page, limit)
+        res.status(200).json(response)
       })
       .catch(error => {
         res.status(500).json({ status: 500, message: error })
@@ -418,6 +436,8 @@ module.exports = {
   fetchCumulativeViewerCount (req, res) {
     const id = req.params.id
     const period = req.params.period
+    const { page, size } = req.query
+    const { limit, offset } = pagination.getPagination(page, size)
 
     let dateFormat = ''
     if (period === 'minute') {
@@ -430,11 +450,12 @@ module.exports = {
       dateFormat = '%Y-%m'
     }
 
-    return Stream.findAll({
+    return Stream.findAndCountAll({
+      subQuery: false,
       attributes: [
         [ sequelize.fn('date_format', sequelize.col('startedAt'), dateFormat), 'date' ],
         [ sequelize.fn('COALESCE', sequelize.fn('COUNT', sequelize.col('Stream.duration')), 0), 'duration' ],
-        [ sequelize.fn('COALESCE', sequelize.fn('SUM', sequelize.col('count')), 0), 'viewers' ]
+        [ sequelize.fn('COALESCE', sequelize.fn('SUM', sequelize.col('count')), 0), 'count' ]
       ],
       where: {
         streamerId: id
@@ -447,11 +468,14 @@ module.exports = {
           }
         }
       ],
-      group: [[sequelize.fn('date_format', sequelize.col('startedAt'), dateFormat), 'date']],
-      order: [ 'startedAt' ]
+      group: [[sequelize.fn('date_format', sequelize.col('startedAt'), dateFormat), 'startedAt']],
+      order: [ 'startedAt' ],
+      limit: limit,
+      offset: offset
     })
-      .then(streams => {
-        res.status(200).json(streams)
+      .then(cumulativeViewers => {
+        const response = pagination.getPagingDataAggregated(cumulativeViewers, page, limit)
+        res.status(200).json(response)
       })
       .catch(error => {
         res.status(500).json({ status: 500, message: error })
@@ -461,6 +485,8 @@ module.exports = {
   fetchCumulativeFollowerCount (req, res) {
     const id = req.params.id
     const period = req.params.period
+    const { page, size } = req.query
+    const { limit, offset } = pagination.getPagination(page, size)
 
     let dateFormat = ''
     if (period === 'minute') {
@@ -473,7 +499,8 @@ module.exports = {
       dateFormat = '%Y-%m'
     }
 
-    return Stream.findAll({
+    return Stream.findAndCountAll({
+      subQuery: false,
       attributes: [
         [ sequelize.fn('date_format', sequelize.col('startedAt'), dateFormat), 'date' ],
         [ sequelize.fn('COALESCE', sequelize.fn('SUM', sequelize.col('count')), 0), 'followers' ],
@@ -490,11 +517,14 @@ module.exports = {
           }
         }
       ],
-      group: [[sequelize.fn('date_format', sequelize.col('startedAt'), dateFormat), 'date']],
-      order: [ 'startedAt' ]
+      group: [[sequelize.fn('date_format', sequelize.col('startedAt'), dateFormat), 'startedAt']],
+      order: [ 'startedAt' ],
+      limit: limit,
+      offset: offset
     })
-      .then(streams => {
-        res.status(200).json(streams)
+      .then(cumulativeFollowers => {
+        const response = pagination.getPagingDataAggregated(cumulativeFollowers, page, limit)
+        res.status(200).json(response)
       })
       .catch(error => {
         res.status(500).json({ status: 500, message: error })
@@ -507,22 +537,22 @@ module.exports = {
 
     return Stream.findAndCountAll({
       subQuery: false,
-      attributes: [
-        'streamerId',
-        [ sequelize.literal(`Streamer.login`), 'login' ],
-        [ sequelize.fn('MAX', sequelize.col('Followers.count')), 'followers' ],
-        [ sequelize.literal(`(SELECT AVG(count) FROM Viewers WHERE streamId = streamerId ORDER BY id DESC LIMIT 10)`), 'averageViewers' ],
-        [ sequelize.fn('MAX', sequelize.col('Viewers.count')), 'peakViewers' ],
-        'duration',
-        'startedAt',
-        'finishedAt'
-      ],
+      attributes: {
+        include: [
+          'streamerId',
+          [ sequelize.literal(`Streamer.login`), 'login' ],
+          [ sequelize.fn('MAX', sequelize.col('Followers.count')), 'followers' ],
+          [ sequelize.fn('AVG', sequelize.col('Viewers.count')), 'averageViewers' ],
+          [ sequelize.fn('MAX', sequelize.col('Viewers.count')), 'peakViewers' ]
+        ],
+        exclude: [ 'id', 'Streamer.deletedAt', 'gameId', 'GameId', 'StreamerId', 'Streamer', 'startedAt', 'finishedAt', 'duration' ]
+      },
       include: [
         { model: Viewer, attributes: { exclude: [ 'id', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt' ] } },
         { model: Follower, attributes: { exclude: [ 'id', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt' ] } },
         { model: Streamer,
           attributes: {
-            exclude: [ 'id', 'externalId', 'login', 'name', 'thumbnail', 'site', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt' ]
+            exclude: [ 'id', 'externalId', 'login', 'name', 'thumbnail', 'site', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt', 'deletedAt' ]
           }
         }
       ],
