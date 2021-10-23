@@ -45,15 +45,18 @@ module.exports = {
     const id = req.params.id
 
     return Follower.findOne({
-      attributes: [ 'count' ],
-      where: {
-        streamId: id
-      },
+      attributes: [
+        [ sequelize.fn('COALESCE', sequelize.fn('MAX', sequelize.col('count')), 0), 'total' ]
+      ],
       order: [ [ 'createdAt', 'DESC' ] ],
       include: [ {
         model: Stream,
         attributes: {
-          exclude: [ 'id', 'streamerId', 'gameId', 'duration', 'GameId', 'StreamerId', 'createdAt', 'updatedAt', 'startedAt', 'finishedAt', 'externalId' ] }
+          exclude: [ 'id', 'streamerId', 'gameId', 'duration', 'GameId', 'StreamerId', 'createdAt', 'updatedAt', 'startedAt', 'finishedAt', 'externalId' ]
+        },
+        where: {
+          streamerId: id
+        }
       }
       ]
     })
