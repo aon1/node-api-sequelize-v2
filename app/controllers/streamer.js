@@ -550,7 +550,7 @@ module.exports = {
       })
       .catch(error => {
         logger.error('Error on creating streamer', error)
-        res.status(500).json({ message: 'Error on creating streamer' })
+        res.status(400).json({ message: 'Error on creating streamer', error: error.errors })
       })
   },
 
