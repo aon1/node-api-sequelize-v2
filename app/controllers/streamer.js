@@ -329,6 +329,7 @@ module.exports = {
       subQuery: false,
       attributes: [
         'id',
+        'externalId',
         [ sequelize.fn('MAX', sequelize.col('Followers.count')), 'maxFollowers' ],
         [ sequelize.fn('MAX', sequelize.col('Viewers.count')), 'maxViewers' ],
         'duration',
@@ -341,6 +342,7 @@ module.exports = {
       group: [ 'Stream.id' ],
       order: [ [ 'startedAt', 'DESC' ] ],
       include: [
+        { model: Streamer, attributes: { exclude: [ 'id', 'externalId', 'login', 'name', 'thumbnail', 'site', 'createdAt', 'updatedAt', 'deletedAt' ] } },
         { model: Game, attributes: { exclude: [ 'createdAt', 'updatedAt' ] } },
         { model: Viewer, attributes: { exclude: [ 'id', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt' ] } },
         { model: Follower, attributes: { exclude: [ 'id', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt' ] } }
