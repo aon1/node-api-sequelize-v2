@@ -8,23 +8,28 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      externalId: {
-        type: Sequelize.STRING,
-        allowNull: false,
-        unique: true
-      },
-      login: {
-        type: Sequelize.STRING
-      },
       name: {
-        type: Sequelize.STRING
+        type: Sequelize.STRING,
+        allowNull: false
       },
       thumbnail: {
         type: Sequelize.STRING
       },
-      site: {
+      twitchId: {
         type: Sequelize.STRING,
-        allowNull: false
+        unique: true
+      },
+      twitchHandle: {
+        type: Sequelize.STRING,
+        unique: true
+      },
+      youtubeId: {
+        type: Sequelize.STRING,
+        unique: true
+      },
+      youtubeHandle: {
+        type: Sequelize.STRING,
+        unique: true
       },
       createdAt: {
         type: Sequelize.DATE,

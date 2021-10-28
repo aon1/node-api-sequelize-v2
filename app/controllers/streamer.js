@@ -9,10 +9,25 @@ module.exports = {
     const { site, page, size } = req.query
     const { limit, offset } = pagination.getPagination(page, size)
 
+    let where = {}
+    if (site === 'twitch') {
+      where = {
+        twitchId: {
+          [Op.not]: null
+        }
+      }
+    } else if (site === 'youtube') {
+      where = {
+        youtubeId: {
+          [Op.not]: null
+        }
+      }
+    } else {
+      res.status(400).json({ message: 'site param required [twitch, youtube]' })
+    }
+
     return Streamer.findAndCountAll({
-      where: {
-        site: site
-      },
+      where: where,
       limit: limit,
       offset: offset
     })
@@ -43,6 +58,7 @@ module.exports = {
 
   fetchFollowers (req, res) {
     const id = req.params.id
+    const { site } = req.query
 
     return Follower.findOne({
       attributes: [
@@ -52,10 +68,11 @@ module.exports = {
       include: [ {
         model: Stream,
         attributes: {
-          exclude: [ 'id', 'streamerId', 'gameId', 'duration', 'GameId', 'StreamerId', 'createdAt', 'updatedAt', 'startedAt', 'finishedAt', 'externalId' ]
+          exclude: [ 'id', 'streamerId', 'gameId', 'duration', 'GameId', 'StreamerId', 'createdAt', 'updatedAt', 'startedAt', 'finishedAt', 'externalId', 'site' ]
         },
         where: {
-          streamerId: id
+          streamerId: id,
+          site: site
         }
       }
       ]
@@ -73,11 +90,13 @@ module.exports = {
 
   fetchLastStream (req, res) {
     const id = req.params.id
+    const { site } = req.query
 
     return Stream.findOne({
       attributes: { exclude: [ 'streamerId', 'gameId', 'StreamerId', 'GameId' ] },
       where: {
-        streamerId: id
+        streamerId: id,
+        site: site
       },
       order: [ [ 'startedAt', 'DESC' ] ],
       limit: 1
@@ -89,6 +108,7 @@ module.exports = {
         return res.status(200).json(streamer)
       })
       .catch(error => {
+        console.log(error)
         res.status(500).json({ status: 500, message: error })
       })
   },
@@ -103,7 +123,7 @@ module.exports = {
       include: {
         model: Stream,
         attributes: {
-          exclude: [ 'id', 'streamerId', 'gameId', 'duration', 'GameId', 'StreamerId', 'createdAt', 'updatedAt', 'startedAt', 'finishedAt', 'externalId' ]
+          exclude: [ 'id', 'streamerId', 'gameId', 'duration', 'GameId', 'StreamerId', 'createdAt', 'updatedAt', 'startedAt', 'finishedAt', 'externalId', 'site' ]
         },
         where: {
           streamerId: id
@@ -121,7 +141,7 @@ module.exports = {
   fetchAverageViewersByPeriod (req, res) {
     const id = req.params.id
     const period = req.params.period
-    const { page, size } = req.query
+    const { page, size, site } = req.query
     const { limit, offset } = pagination.getPagination(page, size)
 
     let dateFormat = ''
@@ -146,10 +166,11 @@ module.exports = {
       include: {
         model: Stream,
         attributes: {
-          exclude: [ 'id', 'streamerId', 'gameId', 'duration', 'GameId', 'StreamerId', 'createdAt', 'updatedAt', 'startedAt', 'finishedAt', 'externalId' ]
+          exclude: [ 'id', 'streamerId', 'gameId', 'duration', 'GameId', 'StreamerId', 'createdAt', 'updatedAt', 'startedAt', 'finishedAt', 'externalId', 'site' ]
         },
         where: {
-          streamerId: id
+          streamerId: id,
+          site: site
         }
       },
       limit: limit,
@@ -168,7 +189,7 @@ module.exports = {
   fetchAverageFollowersByPeriod (req, res) {
     const id = req.params.id
     const period = req.params.period
-    const { page, size } = req.query
+    const { page, size, site } = req.query
     const { limit, offset } = pagination.getPagination(page, size)
 
     let dateFormat = ''
@@ -193,10 +214,11 @@ module.exports = {
       include: {
         model: Stream,
         attributes: {
-          exclude: [ 'id', 'streamerId', 'gameId', 'duration', 'GameId', 'StreamerId', 'createdAt', 'updatedAt', 'startedAt', 'finishedAt', 'externalId' ]
+          exclude: [ 'id', 'streamerId', 'gameId', 'duration', 'GameId', 'StreamerId', 'createdAt', 'updatedAt', 'startedAt', 'finishedAt', 'externalId', 'site' ]
         },
         where: {
-          streamerId: id
+          streamerId: id,
+          site: site
         }
       },
       limit: limit,
@@ -213,7 +235,7 @@ module.exports = {
 
   fetchGamesStreamed (req, res) {
     const id = req.params.id
-    const { page, size } = req.query
+    const { page, size, site } = req.query
     const { limit, offset } = pagination.getPagination(page, size)
 
     return Stream.findAndCountAll({
@@ -223,6 +245,7 @@ module.exports = {
       group: [ 'gameId' ],
       where: {
         streamerId: id,
+        site: site,
         finishedAt: {
           [Op.not]: null
         }
@@ -243,7 +266,7 @@ module.exports = {
   fetchHoursStreamedByPeriod (req, res) {
     const id = req.params.id
     const period = req.params.period
-    const { page, size } = req.query
+    const { page, size, site } = req.query
     const { limit, offset } = pagination.getPagination(page, size)
 
     let dateFormat = ''
@@ -261,7 +284,8 @@ module.exports = {
         [ sequelize.fn('COALESCE', sequelize.fn('SUM', sequelize.col('duration')), 0), 'duration' ]
       ],
       where: {
-        streamerId: id
+        streamerId: id,
+        site: site
       },
       group: [ [sequelize.fn('date_format', sequelize.col('startedAt'), dateFormat), 'startedAt'] ],
       limit: limit,
@@ -279,7 +303,7 @@ module.exports = {
   fetchFollowersByPeriod (req, res) {
     const id = req.params.id
     const period = req.params.period
-    const { page, size } = req.query
+    const { page, size, site } = req.query
     const { limit, offset } = pagination.getPagination(page, size)
 
     let dateFormat = ''
@@ -302,10 +326,26 @@ module.exports = {
       include: {
         model: Stream,
         attributes: {
-          exclude: [ 'id', 'streamerId', 'gameId', 'duration', 'GameId', 'StreamerId', 'createdAt', 'updatedAt', 'startedAt', 'finishedAt', 'externalId' ]
+          exclude: [
+            'id',
+            'streamerId',
+            'gameId',
+            'duration',
+            'GameId',
+            'StreamerId',
+            'createdAt',
+            'updatedAt',
+            'startedAt',
+            'finishedAt',
+            'twitchId',
+            'twitchHandle',
+            'youtubeId',
+            'youtubeHandle'
+          ]
         },
         where: {
-          streamerId: id
+          streamerId: id,
+          site: site
         }
       },
       limit: limit,
@@ -322,27 +362,30 @@ module.exports = {
 
   fetchStreams (req, res) {
     const id = req.params.id
-    const { page, size } = req.query
+    const { page, size, site } = req.query
     const { limit, offset } = pagination.getPagination(page, size)
+
+    const attributes = [
+      'id',
+      'externalId',
+      [ sequelize.fn('MAX', sequelize.col('Followers.count')), 'maxFollowers' ],
+      [ sequelize.fn('MAX', sequelize.col('Viewers.count')), 'maxViewers' ],
+      'duration',
+      'startedAt',
+      'finishedAt'
+    ]
 
     return Stream.findAndCountAll({
       subQuery: false,
-      attributes: [
-        'id',
-        'externalId',
-        [ sequelize.fn('MAX', sequelize.col('Followers.count')), 'maxFollowers' ],
-        [ sequelize.fn('MAX', sequelize.col('Viewers.count')), 'maxViewers' ],
-        'duration',
-        'startedAt',
-        'finishedAt'
-      ],
+      attributes: attributes,
       where: {
-        streamerId: id
+        streamerId: id,
+        site: site
       },
       group: [ 'Stream.id' ],
       order: [ [ 'startedAt', 'DESC' ] ],
       include: [
-        { model: Streamer, attributes: { exclude: [ 'id', 'externalId', 'login', 'name', 'thumbnail', 'site', 'createdAt', 'updatedAt', 'deletedAt' ] } },
+        { model: Streamer, attributes: { exclude: [ 'id', 'twitchId', 'twitchHandle', 'youtubeId', 'youtubeHandle', 'name', 'thumbnail', 'createdAt', 'updatedAt', 'deletedAt', 'site' ] } },
         { model: Game, attributes: { exclude: [ 'createdAt', 'updatedAt' ] } },
         { model: Viewer, attributes: { exclude: [ 'id', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt' ] } },
         { model: Follower, attributes: { exclude: [ 'id', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt' ] } }
@@ -361,7 +404,7 @@ module.exports = {
 
   fetchRecentStreams (req, res) {
     const id = req.params.id
-    const { page, size } = req.query
+    const { page, size, site } = req.query
     const { limit, offset } = pagination.getPagination(page, size)
 
     return Stream.findAndCountAll({
@@ -374,7 +417,8 @@ module.exports = {
         'finishedAt'
       ],
       where: {
-        streamerId: id
+        streamerId: id,
+        site: site
       },
       limit: limit,
       offset: offset,
@@ -398,7 +442,7 @@ module.exports = {
     const id = req.params.id
     const startedAt = req.params.startDate
     const finishedAt = req.params.endDate
-    const { page, size } = req.query
+    const { page, size, site } = req.query
     const { limit, offset } = pagination.getPagination(page, size)
 
     const dateFormat = '%Y-%m-%d'
@@ -410,6 +454,7 @@ module.exports = {
       ],
       where: {
         streamerId: id,
+        site: site,
         [Op.or]: [{
           startedAt: {
             [Op.between]: [startedAt, finishedAt]
@@ -438,7 +483,7 @@ module.exports = {
   fetchCumulativeViewerCount (req, res) {
     const id = req.params.id
     const period = req.params.period
-    const { page, size } = req.query
+    const { page, size, site } = req.query
     const { limit, offset } = pagination.getPagination(page, size)
 
     let dateFormat = ''
@@ -460,7 +505,8 @@ module.exports = {
         [ sequelize.fn('COALESCE', sequelize.fn('SUM', sequelize.col('count')), 0), 'count' ]
       ],
       where: {
-        streamerId: id
+        streamerId: id,
+        site: site
       },
       include: [
         {
@@ -487,7 +533,7 @@ module.exports = {
   fetchCumulativeFollowerCount (req, res) {
     const id = req.params.id
     const period = req.params.period
-    const { page, size } = req.query
+    const { page, size, site } = req.query
     const { limit, offset } = pagination.getPagination(page, size)
 
     let dateFormat = ''
@@ -509,7 +555,8 @@ module.exports = {
         [ sequelize.fn('COUNT', sequelize.col('Stream.id')), 'streams' ]
       ],
       where: {
-        streamerId: id
+        streamerId: id,
+        site: site
       },
       include: [
         {
@@ -534,27 +581,29 @@ module.exports = {
   },
 
   fetchTopStreamers (req, res) {
-    const { page, size } = req.query
+    const { page, size, site } = req.query
     const { limit, offset } = pagination.getPagination(page, size)
 
     return Stream.findAndCountAll({
       subQuery: false,
+      where: {
+        site: site
+      },
       attributes: {
         include: [
           'streamerId',
-          [ sequelize.literal(`Streamer.login`), 'login' ],
           [ sequelize.fn('MAX', sequelize.col('Followers.count')), 'followers' ],
           [ sequelize.fn('AVG', sequelize.col('Viewers.count')), 'averageViewers' ],
           [ sequelize.fn('MAX', sequelize.col('Viewers.count')), 'peakViewers' ]
         ],
-        exclude: [ 'id', 'Streamer.deletedAt', 'gameId', 'GameId', 'StreamerId', 'Streamer', 'startedAt', 'finishedAt', 'duration' ]
+        exclude: [ 'id', 'Streamer.deletedAt', 'gameId', 'GameId', 'StreamerId', 'Streamer', 'startedAt', 'finishedAt', 'duration', 'site' ]
       },
       include: [
         { model: Viewer, attributes: { exclude: [ 'id', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt' ] } },
         { model: Follower, attributes: { exclude: [ 'id', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt' ] } },
         { model: Streamer,
           attributes: {
-            exclude: [ 'id', 'externalId', 'login', 'name', 'thumbnail', 'site', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt', 'deletedAt' ]
+            exclude: [ 'id', 'externalId', 'name', 'thumbnail', 'site', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt', 'deletedAt' ]
           }
         }
       ],

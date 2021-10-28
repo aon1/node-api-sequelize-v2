@@ -15,14 +15,6 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   Streamer.init({
-    externalId: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
-    login: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
     name: {
       type: DataTypes.STRING,
       allowNull: false
@@ -30,9 +22,17 @@ module.exports = (sequelize, DataTypes) => {
     thumbnail: {
       type: DataTypes.STRING
     },
-    site: {
-      type: DataTypes.STRING,
-      allowNull: false
+    twitchId: {
+      type: DataTypes.STRING
+    },
+    twitchHandle: {
+      type: DataTypes.STRING
+    },
+    youtubeId: {
+      type: DataTypes.STRING
+    },
+    youtubeHandle: {
+      type: DataTypes.STRING
     }
   }, {
     sequelize,

@@ -5,10 +5,11 @@ module.exports = {
     await queryInterface.bulkInsert('Streamers', [
       {
         id: 1,
-        externalId: '254489093222',
-        login: 'newstreamer',
-        name: 'newstreamer',
-        site: 'twitch'
+        twitchId: '254489093222',
+        twitchHandle: 'twitchHandle',
+        youtubeId: '254489093221',
+        youtubeHandle: 'youtubeHandle',
+        name: 'newstreamer'
       }
     ], {})
   },

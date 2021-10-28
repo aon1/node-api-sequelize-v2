@@ -39,6 +39,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false
     },
+    site: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
     startedAt: {
       type: DataTypes.DATE,
       defaultValue: new Date(),

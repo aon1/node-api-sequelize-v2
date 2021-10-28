@@ -2,6 +2,7 @@ const sequelize = require('sequelize')
 const twitchApi = require('../services/twitch')
 const { Streamer, Stream, Game, Viewer, Follower } = require('../models')
 const { logger } = require('../services/logger')
+const { Op } = require('sequelize')
 
 module.exports = {
   async fetchStreamsJob (req, res) {
@@ -10,12 +11,14 @@ module.exports = {
     let offset = 0
     let batchSize = 100
 
-    logger.info('fetchStreamsJob started')
+    logger.info('twitch fetchStreamsJob started')
     try {
       do {
         const streamers = await Streamer.findAll({
           where: {
-            site: 'twitch'
+            twitchId: {
+              [Op.not]: null
+            }
           },
           limit: 100,
           offset: offset
@@ -25,12 +28,12 @@ module.exports = {
           break
         }
 
-        const streamersMap = new Map(streamers.map(i => [i.login, i]))
-        const userNames = []
-        streamers.forEach(streamer => userNames.push(streamer.login))
+        const streamersMap = new Map(streamers.map(i => [i.twitchId, i]))
+        const usersId = []
+        streamers.forEach(streamer => usersId.push(streamer.twitchId))
 
         do {
-          const streams = await twitchApi.getStreams({ userName: userNames })
+          const streams = await twitchApi.getStreams({ userId: usersId })
           for (const s of streams.data) {
             const game = await Game.findOne({
               where: {
@@ -43,10 +46,11 @@ module.exports = {
                 externalId: s.id
               },
               defaults: {
-                streamerId: streamersMap.get(s.userName).id,
+                streamerId: streamersMap.get(s.userId).id,
                 externalId: s.id,
                 startedAt: s.startDate,
-                gameId: game.id
+                gameId: game.id,
+                site: 'twitch'
               }
             })
 
@@ -55,7 +59,7 @@ module.exports = {
               count: s.viewers
             })
 
-            const followers = await twitchApi.getFollowers({ followedUser: streamersMap.get(s.userName).externalId })
+            const followers = await twitchApi.getFollowers({ followedUser: streamersMap.get(s.userId).twitchId })
             Follower.create({
               streamId: created[0].id,
               count: followers.total
@@ -71,7 +75,7 @@ module.exports = {
         } while (cursor !== undefined)
         offset += batchSize
       } while (true)
-      logger.info('fetchStreamsJob finished')
+      logger.info('twitch fetchStreamsJob finished')
     } catch (error) {
       throw error
     }
@@ -81,7 +85,7 @@ module.exports = {
     let filter = { limit: 100 }
     let cursor = null
 
-    logger.info('fetchTopGamesJob started')
+    logger.info('twitch fetchTopGamesJob started')
     try {
       do {
         const games = await twitchApi.getTopGames(filter)
@@ -109,28 +113,35 @@ module.exports = {
       throw error
     }
 
-    logger.info('fetchTopGamesJob finished')
+    logger.info('twitch fetchTopGamesJob finished')
   },
 
   async streamHasFinishedJob (req, res) {
-    logger.info('streamHasFinishedJob started')
+    logger.info('twitch streamHasFinishedJob started')
     try {
       const streams = await Stream.findAll({
-        include: { model: Streamer, where: { site: 'twitch' } },
+        include: {
+          model: Streamer,
+          where: {
+            twitchId: {
+              [Op.not]: null
+            }
+          }
+        },
         where: {
           finishedAt: null
         }
       })
 
-      const userNames = []
-      streams.forEach(stream => userNames.push(stream.Streamer.login))
+      const usersId = []
+      streams.forEach(stream => usersId.push(stream.Streamer.twitchId))
 
-      const twitchStreams = await twitchApi.getStreams({ userName: userNames })
+      const twitchStreams = await twitchApi.getStreams({ userId: usersId })
       const twitchStreamsMap = new Map(twitchStreams.data.map(i => [i.id, i]))
 
       for (const stream of streams) {
         if (!twitchStreamsMap.get(stream.externalId)) {
-          logger.info('Stream has finished ' + stream.Streamer.login)
+          logger.info('Stream has finished ' + stream.Streamer.name)
           Stream.update({
             finishedAt: sequelize.fn('NOW'),
             duration: sequelize.literal(`((SELECT UNIX_TIMESTAMP(NOW()) - UNIX_TIMESTAMP(startedAt))/3600)`)
@@ -146,6 +157,6 @@ module.exports = {
       throw error
     }
 
-    logger.info('streamHasFinishedJob finished')
+    logger.info('twitch streamHasFinishedJob finished')
   }
 }
