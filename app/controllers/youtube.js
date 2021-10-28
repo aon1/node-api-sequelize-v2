@@ -2,20 +2,23 @@ const sequelize = require('sequelize')
 const youtubeApi = require('../services/youtube')
 const { Streamer, Stream, Viewer, Follower } = require('../models')
 const { logger } = require('../services/logger')
+const { Op } = require('sequelize')
 
 module.exports = {
   async fetchStreamsJob (req, res) {
     try {
       const streamers = await Streamer.findAll({
         where: {
-          site: 'youtube'
+          youtubeId: {
+            [Op.not]: null
+          }
         }
       })
 
-      const streamersMap = new Map(streamers.map(i => [i.externalId, i]))
+      const streamersMap = new Map(streamers.map(i => [i.youtubeId, i]))
 
       for (const streamer of streamers) {
-        const streams = await youtubeApi.getStreams(streamer.externalId)
+        const streams = await youtubeApi.getStreams(streamer.youtubeId)
 
         for (const st of streams.data.items) {
           const videoDetails = (await youtubeApi.getVideoDetails(st.id.videoId)).data.items[0]
@@ -31,7 +34,8 @@ module.exports = {
               streamerId: streamersMap.get(st.snippet.channelId).id,
               externalId: st.id.videoId,
               startedAt: videoDetails.liveStreamingDetails.actualStartTime,
-              gameId: 4625
+              gameId: 4625,
+              site: 'youtube'
             }
           })
 
@@ -40,7 +44,7 @@ module.exports = {
             count: videoDetails.liveStreamingDetails.concurrentViewers
           })
 
-          const statistics = (await youtubeApi.getChannelStatistics(streamer.externalId)).data.items[0].statistics
+          const statistics = (await youtubeApi.getChannelStatistics(streamer.youtubeId)).data.items[0].statistics
 
           if (!statistics.hiddenSubscriberCount) {
             Follower.create({
@@ -59,7 +63,14 @@ module.exports = {
   async fetchCurrentStreams (req, res) {
     try {
       const streams = await Stream.findAll({
-        include: { model: Streamer, where: { site: 'youtube' } },
+        include: {
+          model: Streamer,
+          where: {
+            youtubeId: {
+              [Op.not]: null
+            }
+          }
+        },
         where: {
           finishedAt: null
         }
@@ -88,7 +99,7 @@ module.exports = {
           count: count
         })
 
-        const statistics = (await youtubeApi.getChannelStatistics(stream.Streamer.externalId)).data.items[0].statistics
+        const statistics = (await youtubeApi.getChannelStatistics(stream.Streamer.youtubeId)).data.items[0].statistics
         if (!statistics.hiddenSubscriberCount) {
           Follower.create({
             streamId: stream.id,
