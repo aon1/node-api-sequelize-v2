@@ -56,7 +56,7 @@ module.exports = {
       }
     } catch (error) {
       logger.error(error)
-      return res.status(error.code).json({ message: error.errors })
+      throw error
     }
   },
 
@@ -108,6 +108,7 @@ module.exports = {
         }
       }
     } catch (error) {
+      logger.error(error)
       throw error
     }
   }
