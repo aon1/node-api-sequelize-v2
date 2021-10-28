@@ -340,7 +340,9 @@ module.exports = {
             'twitchId',
             'twitchHandle',
             'youtubeId',
-            'youtubeHandle'
+            'youtubeHandle',
+            'externalId',
+            'site'
           ]
         },
         where: {
@@ -596,7 +598,7 @@ module.exports = {
           [ sequelize.fn('AVG', sequelize.col('Viewers.count')), 'averageViewers' ],
           [ sequelize.fn('MAX', sequelize.col('Viewers.count')), 'peakViewers' ]
         ],
-        exclude: [ 'id', 'Streamer.deletedAt', 'gameId', 'GameId', 'StreamerId', 'Streamer', 'startedAt', 'finishedAt', 'duration', 'site' ]
+        exclude: [ 'id', 'Streamer.deletedAt', 'gameId', 'GameId', 'StreamerId', 'Streamer', 'startedAt', 'finishedAt', 'duration', 'site', 'externalId' ]
       },
       include: [
         { model: Viewer, attributes: { exclude: [ 'id', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt' ] } },
