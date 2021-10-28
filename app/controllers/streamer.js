@@ -9,10 +9,25 @@ module.exports = {
     const { site, page, size } = req.query
     const { limit, offset } = pagination.getPagination(page, size)
 
+    let where = {}
+    if (site === 'twitch') {
+      where = {
+        twitchId: {
+          [Op.not]: null
+        }
+      }
+    } else if (site === 'youtube') {
+      where = {
+        youtubeId: {
+          [Op.not]: null
+        }
+      }
+    } else {
+      res.status(400).json({ message: 'site param required [twitch, youtube]' })
+    }
+
     return Streamer.findAndCountAll({
-      where: {
-        site: site
-      },
+      where: where,
       limit: limit,
       offset: offset
     })
@@ -302,7 +317,22 @@ module.exports = {
       include: {
         model: Stream,
         attributes: {
-          exclude: [ 'id', 'streamerId', 'gameId', 'duration', 'GameId', 'StreamerId', 'createdAt', 'updatedAt', 'startedAt', 'finishedAt', 'externalId' ]
+          exclude: [
+            'id',
+            'streamerId',
+            'gameId',
+            'duration',
+            'GameId',
+            'StreamerId',
+            'createdAt',
+            'updatedAt',
+            'startedAt',
+            'finishedAt',
+            'twitchId',
+            'twitchHandle',
+            'youtubeId',
+            'youtubeHandle'
+          ]
         },
         where: {
           streamerId: id
@@ -322,27 +352,35 @@ module.exports = {
 
   fetchStreams (req, res) {
     const id = req.params.id
+    const site = req.params.site
     const { page, size } = req.query
     const { limit, offset } = pagination.getPagination(page, size)
 
+    const attributes = [
+      'id',
+      [ sequelize.fn('MAX', sequelize.col('Followers.count')), 'maxFollowers' ],
+      [ sequelize.fn('MAX', sequelize.col('Viewers.count')), 'maxViewers' ],
+      'duration',
+      'startedAt',
+      'finishedAt'
+    ]
+
+    if (site === 'twitch') {
+      attributes.push([ 'twitchId', 'twitchHandle' ])
+    } else if (site === 'youtube') {
+      attributes.push([ 'youtubeId', 'youtubeHandle' ])
+    }
+
     return Stream.findAndCountAll({
       subQuery: false,
-      attributes: [
-        'id',
-        'externalId',
-        [ sequelize.fn('MAX', sequelize.col('Followers.count')), 'maxFollowers' ],
-        [ sequelize.fn('MAX', sequelize.col('Viewers.count')), 'maxViewers' ],
-        'duration',
-        'startedAt',
-        'finishedAt'
-      ],
+      attributes: attributes,
       where: {
         streamerId: id
       },
       group: [ 'Stream.id' ],
       order: [ [ 'startedAt', 'DESC' ] ],
       include: [
-        { model: Streamer, attributes: { exclude: [ 'id', 'externalId', 'login', 'name', 'thumbnail', 'site', 'createdAt', 'updatedAt', 'deletedAt' ] } },
+        { model: Streamer, attributes: { exclude: [ 'id', 'twitchId', 'twitchHandle', 'youtubeId', 'youtubeHandle', 'name', 'thumbnail', 'createdAt', 'updatedAt', 'deletedAt' ] } },
         { model: Game, attributes: { exclude: [ 'createdAt', 'updatedAt' ] } },
         { model: Viewer, attributes: { exclude: [ 'id', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt' ] } },
         { model: Follower, attributes: { exclude: [ 'id', 'streamId', 'count', 'StreamId', 'createdAt', 'updatedAt' ] } }
@@ -361,6 +399,7 @@ module.exports = {
 
   fetchRecentStreams (req, res) {
     const id = req.params.id
+    const site = req.params.site
     const { page, size } = req.query
     const { limit, offset } = pagination.getPagination(page, size)
 
@@ -374,7 +413,8 @@ module.exports = {
         'finishedAt'
       ],
       where: {
-        streamerId: id
+        streamerId: id,
+        site: site
       },
       limit: limit,
       offset: offset,
@@ -396,6 +436,7 @@ module.exports = {
 
   fetchStreamsByDateRange (req, res) {
     const id = req.params.id
+    const site = req.params.site
     const startedAt = req.params.startDate
     const finishedAt = req.params.endDate
     const { page, size } = req.query
@@ -410,6 +451,7 @@ module.exports = {
       ],
       where: {
         streamerId: id,
+        site: site,
         [Op.or]: [{
           startedAt: {
             [Op.between]: [startedAt, finishedAt]
@@ -437,6 +479,7 @@ module.exports = {
 
   fetchCumulativeViewerCount (req, res) {
     const id = req.params.id
+    const site = req.params.site
     const period = req.params.period
     const { page, size } = req.query
     const { limit, offset } = pagination.getPagination(page, size)
@@ -460,7 +503,8 @@ module.exports = {
         [ sequelize.fn('COALESCE', sequelize.fn('SUM', sequelize.col('count')), 0), 'count' ]
       ],
       where: {
-        streamerId: id
+        streamerId: id,
+        site: site
       },
       include: [
         {
@@ -486,6 +530,7 @@ module.exports = {
 
   fetchCumulativeFollowerCount (req, res) {
     const id = req.params.id
+    const site = req.params.site
     const period = req.params.period
     const { page, size } = req.query
     const { limit, offset } = pagination.getPagination(page, size)
@@ -509,7 +554,8 @@ module.exports = {
         [ sequelize.fn('COUNT', sequelize.col('Stream.id')), 'streams' ]
       ],
       where: {
-        streamerId: id
+        streamerId: id,
+        site: site
       },
       include: [
         {
@@ -534,11 +580,15 @@ module.exports = {
   },
 
   fetchTopStreamers (req, res) {
+    const site = req.params.site
     const { page, size } = req.query
     const { limit, offset } = pagination.getPagination(page, size)
 
     return Stream.findAndCountAll({
       subQuery: false,
+      where: {
+        site: site
+      },
       attributes: {
         include: [
           'streamerId',
