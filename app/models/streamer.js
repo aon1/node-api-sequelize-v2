@@ -23,13 +23,15 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING
     },
     twitchId: {
-      type: DataTypes.STRING
+      type: DataTypes.STRING,
+      unique: true
     },
     twitchHandle: {
       type: DataTypes.STRING
     },
     youtubeId: {
-      type: DataTypes.STRING
+      type: DataTypes.STRING,
+      unique: true
     },
     youtubeHandle: {
       type: DataTypes.STRING
