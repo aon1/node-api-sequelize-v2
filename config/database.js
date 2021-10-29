@@ -7,7 +7,7 @@ module.exports = {
   host: config.MYSQL_HOST,
   port: config.MYSQL_PORT,
   dialect: 'mysql',
-  logging: config.SEQUELIZE_LOGGING,
+  // logging: true,
   dialectOptions: { decimalNumbers: true },
   sshUsername: config.SSH_USERNAME,
   sshHost: config.SSH_HOST,
