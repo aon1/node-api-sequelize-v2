@@ -2,4 +2,3 @@ node_modules/
 .idea/
 config/*.env
 !config/env-file-example.env
-devadmin.ppk
