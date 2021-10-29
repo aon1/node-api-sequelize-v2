@@ -60,6 +60,10 @@ module.exports = {
     const id = req.params.id
     const { site } = req.query
 
+    if (!site) {
+      res.status(400).json({ message: 'site param required [twitch, youtube]' })
+    }
+
     return Follower.findOne({
       attributes: [
         [ sequelize.fn('COALESCE', sequelize.fn('MAX', sequelize.col('count')), 0), 'total' ]
@@ -92,6 +96,10 @@ module.exports = {
     const id = req.params.id
     const { site } = req.query
 
+    if (!site) {
+      res.status(400).json({ message: 'site param required [twitch, youtube]' })
+    }
+
     return Stream.findOne({
       attributes: { exclude: [ 'streamerId', 'gameId', 'StreamerId', 'GameId' ] },
       where: {
@@ -115,6 +123,11 @@ module.exports = {
 
   fetchAverageViewers (req, res) {
     const id = req.params.id
+    const { site } = req.query
+
+    if (!site) {
+      res.status(400).json({ message: 'site param required [twitch, youtube]' })
+    }
 
     return Viewer.findOne({
       attributes: [
@@ -126,7 +139,8 @@ module.exports = {
           exclude: [ 'id', 'streamerId', 'gameId', 'duration', 'GameId', 'StreamerId', 'createdAt', 'updatedAt', 'startedAt', 'finishedAt', 'externalId', 'site' ]
         },
         where: {
-          streamerId: id
+          streamerId: id,
+          site: site
         }
       }
     })
@@ -143,6 +157,10 @@ module.exports = {
     const period = req.params.period
     const { page, size, site } = req.query
     const { limit, offset } = pagination.getPagination(page, size)
+
+    if (!site) {
+      res.status(400).json({ message: 'site param required [twitch, youtube]' })
+    }
 
     let dateFormat = ''
     if (period === 'minute') {
@@ -192,6 +210,10 @@ module.exports = {
     const { page, size, site } = req.query
     const { limit, offset } = pagination.getPagination(page, size)
 
+    if (!site) {
+      res.status(400).json({ message: 'site param required [twitch, youtube]' })
+    }
+
     let dateFormat = ''
     if (period === 'minute') {
       dateFormat = '%Y-%m-%d %H:%m'
@@ -238,6 +260,10 @@ module.exports = {
     const { page, size, site } = req.query
     const { limit, offset } = pagination.getPagination(page, size)
 
+    if (!site) {
+      res.status(400).json({ message: 'site param required [twitch, youtube]' })
+    }
+
     return Stream.findAndCountAll({
       attributes: [
         [ sequelize.fn('COALESCE', sequelize.fn('SUM', sequelize.col('duration')), 0), 'duration' ]
@@ -268,6 +294,10 @@ module.exports = {
     const period = req.params.period
     const { page, size, site } = req.query
     const { limit, offset } = pagination.getPagination(page, size)
+
+    if (!site) {
+      res.status(400).json({ message: 'site param required [twitch, youtube]' })
+    }
 
     let dateFormat = ''
     if (period === 'day') {
@@ -305,6 +335,10 @@ module.exports = {
     const period = req.params.period
     const { page, size, site } = req.query
     const { limit, offset } = pagination.getPagination(page, size)
+
+    if (!site) {
+      res.status(400).json({ message: 'site param required [twitch, youtube]' })
+    }
 
     let dateFormat = ''
     if (period === 'minute') {
@@ -367,6 +401,10 @@ module.exports = {
     const { page, size, site } = req.query
     const { limit, offset } = pagination.getPagination(page, size)
 
+    if (!site) {
+      res.status(400).json({ message: 'site param required [twitch, youtube]' })
+    }
+
     const attributes = [
       'id',
       'externalId',
@@ -409,6 +447,10 @@ module.exports = {
     const { page, size, site } = req.query
     const { limit, offset } = pagination.getPagination(page, size)
 
+    if (!site) {
+      res.status(400).json({ message: 'site param required [twitch, youtube]' })
+    }
+
     return Stream.findAndCountAll({
       attributes: [
         'id',
@@ -446,6 +488,10 @@ module.exports = {
     const finishedAt = req.params.endDate
     const { page, size, site } = req.query
     const { limit, offset } = pagination.getPagination(page, size)
+
+    if (!site) {
+      res.status(400).json({ message: 'site param required [twitch, youtube]' })
+    }
 
     const dateFormat = '%Y-%m-%d'
 
@@ -487,6 +533,10 @@ module.exports = {
     const period = req.params.period
     const { page, size, site } = req.query
     const { limit, offset } = pagination.getPagination(page, size)
+
+    if (!site) {
+      res.status(400).json({ message: 'site param required [twitch, youtube]' })
+    }
 
     let dateFormat = ''
     if (period === 'minute') {
@@ -538,6 +588,10 @@ module.exports = {
     const { page, size, site } = req.query
     const { limit, offset } = pagination.getPagination(page, size)
 
+    if (!site) {
+      res.status(400).json({ message: 'site param required [twitch, youtube]' })
+    }
+
     let dateFormat = ''
     if (period === 'minute') {
       dateFormat = '%Y-%m-%d %H:%m'
@@ -585,6 +639,10 @@ module.exports = {
   fetchTopStreamers (req, res) {
     const { page, size, site } = req.query
     const { limit, offset } = pagination.getPagination(page, size)
+
+    if (!site) {
+      res.status(400).json({ message: 'site param required [twitch, youtube]' })
+    }
 
     return Stream.findAndCountAll({
       subQuery: false,
